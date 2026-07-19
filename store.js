@@ -426,16 +426,11 @@
         self.start = function () {
             if (!el) return;
             try {
-                // Устанавливаем коллекцию для навигации
                 Lampa.Controller.collectionSet(el);
-                // Ставим фокус на первый элемент
                 var target = (lastFocused && el.contains(lastFocused)) ? lastFocused : el.querySelector('.selector');
                 if (target) {
                     Lampa.Controller.collectionFocus(target, el);
                 }
-                // Активируем контроллер
-                Lampa.Controller.toggle('urrowstore');
-                console.log('[urrowstore] start: controller activated');
             } catch (e) {
                 console.error('[urrowstore] start error:', e);
             }
@@ -563,7 +558,8 @@
                 b.addEventListener('hover:enter', function () {
                     data.cat = b.getAttribute('data-cat');
                     lastFocused = null;
-                    self.renderList();
+                    // Откладываем re-render чтобы Controller завершил обработку события
+                    setTimeout(function () { self.renderList(); }, 50);
                 });
             });
 
@@ -588,7 +584,7 @@
                     if (br.length) msg = '✗ Сломанных: ' + br.length;
                     if (od.length) msg += ' | Устаревших: ' + od.length;
                     notify(msg);
-                    self.start();
+                    setTimeout(function () { self.start(); }, 100);
                 });
             });
 

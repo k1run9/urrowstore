@@ -368,28 +368,38 @@
         try {
             Lampa.Controller.add('urrowstore', {
                 toggle: function () {
+                    log('TOGGLE CALLED');
                     try {
                         var r = (this.activity && this.activity.render) ? this.activity.render() : null;
                         if (!r) r = document.querySelector('.us');
+                        log('toggle render:', r ? r.className : 'null', 'selectors:', r ? r.querySelectorAll('.selector').length : 0);
                         if (r) {
                             Lampa.Controller.collectionSet(r);
                             var f = r.querySelector('.selector');
                             if (f) Lampa.Controller.collectionFocus(f, r);
                         }
-                    } catch (e) {}
+                        log('toggle done, focused:', document.querySelector('.selector.focus') ? 'yes' : 'no');
+                    } catch (e) { log('toggle error', e); }
                 },
                 move: function (d) {
-                    try { Lampa.Controller.move(d); } catch (e) {}
+                    log('MOVE CALLED, direction:', d);
+                    try {
+                        var before = document.querySelectorAll('.selector.focus').length;
+                        Lampa.Controller.move(d);
+                        var after = document.querySelectorAll('.selector.focus').length;
+                        log('move done, focus before:', before, 'after:', after);
+                    } catch (e) { log('move error', e); }
                 },
                 enter: function () {
+                    var f = document.querySelector('.selector.focus');
+                    log('ENTER CALLED, focused:', f ? f.textContent.trim().substring(0, 30) : 'none');
                     try {
-                        var f = document.querySelector('.selector.focus');
                         if (f) $(f).trigger('hover:enter');
-                    } catch (e) {}
+                    } catch (e) { log('enter error', e); }
                 },
                 back: function () { try { Lampa.Activity.backward(); } catch (e) {} }
             });
-        } catch (e) {}
+        } catch (e) { log('Controller.add error', e); }
 
         try {
             var headSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>';
@@ -420,6 +430,25 @@
 
         checkUpdate();
         log('ready');
+
+        // === DIAGNOSTICS (temporary — remove after debugging) ===
+        log('--- DIAGNOSTICS START ---');
+        log('Lampa.Controller type:', typeof Lampa.Controller);
+        log('Lampa.Controller keys:', Object.keys(Lampa.Controller));
+        try { log('collectionSet type:', typeof Lampa.Controller.collectionSet); } catch (e) {}
+        try { log('move type:', typeof Lampa.Controller.move); } catch (e) {}
+        try { log('toggle type:', typeof Lampa.Controller.toggle); } catch (e) {}
+        try { log('own type:', typeof Lampa.Controller.own); } catch (e) {}
+        try { log('type method:', typeof Lampa.Controller.type); } catch (e) {}
+        try { log('active method:', typeof Lampa.Controller.active); } catch (e) {}
+        try {
+            var menuSelectors = document.querySelectorAll('.menu .selector');
+            log('menu selectors in DOM:', menuSelectors.length);
+            for (var i = 0; i < Math.min(menuSelectors.length, 5); i++) {
+                log('  menu item', i, ':', menuSelectors[i].textContent.trim().substring(0, 30));
+            }
+        } catch (e) {}
+        log('--- DIAGNOSTICS END ---');
     }
 
     if (window.appready) init();

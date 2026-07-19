@@ -66,26 +66,61 @@
         try { if (!Lampa.Storage.get('agree_installation', false)) Lampa.Storage.set('agree_installation', true); } catch (e) {}
     }
 
+    // Активация скрипта плагина в текущей сессии (вставка <script> в DOM)
+    function activatePluginScript(url, name, cb) {
+        try {
+            var existing = document.querySelector('script[data-urrow-plugin="' + url + '"]');
+            if (existing) { if (cb) cb(true); return; }
+            if (typeof Lampa === 'undefined') { if (cb) cb(false); return; }
+
+            var script = document.createElement('script');
+            script.src = url + (url.indexOf('?') > -1 ? '&' : '?') + '_t=' + Date.now();
+            script.setAttribute('data-urrow-plugin', url);
+            script.onload = function () {
+                console.log('[urrowstore] Плагин активирован:', name);
+                if (cb) cb(true);
+            };
+            script.onerror = function () {
+                console.error('[urrowstore] Ошибка загрузки:', name, url);
+                if (cb) cb(false);
+            };
+            document.body.appendChild(script);
+        } catch (e) {
+            console.error('[urrowstore] activatePluginScript error:', e);
+            if (cb) cb(false);
+        }
+    }
+
     function installPlugin(p, cb) {
         ensureAgreement();
         try {
             var ext = getExt();
-            if (!ext.some(function (e) { return e.url === p.script_url; })) {
-                var plug = { url: p.script_url, name: p.name, author: p.author, status: 1 };
-                ext.push(plug);
+            var already = ext.some(function (e) { return e.url === p.script_url; });
+            if (!already) {
+                ext.push({ url: p.script_url, name: p.name, author: p.author, status: 1 });
                 Lampa.Storage.set('plugins', ext);
-                if (Lampa.Plugins && Lampa.Plugins.push) Lampa.Plugins.push(plug);
             }
-            notify(p.name + ' ✓');
+
+            activatePluginScript(p.script_url, p.name, function (ok) {
+                if (ok) {
+                    notify(p.name + ' установлен и активирован ✓');
+                } else {
+                    notify(p.name + ' добавлен (перезагрузите для активации)');
+                }
+                if (cb) cb();
+            });
+        } catch (e) {
+            console.error('[urrowstore] installPlugin error:', e);
+            notify('Ошибка установки');
             if (cb) cb();
-        } catch (e) { notify('Ошибка'); if (cb) cb(); }
+        }
     }
 
     function uninstallPlugin(p, cb) {
         try {
             Lampa.Storage.set('plugins', getExt().filter(function (e) { return e.url !== p.script_url; }));
             if (Lampa.Plugins && Lampa.Plugins.remove) Lampa.Plugins.remove({ url: p.script_url });
-            notify(p.name + ' удалён');
+            notify(p.name + ' удалён из списка. Для полного отключения перезапустите Lampa.');
             if (cb) cb();
         } catch (e) { if (cb) cb(); }
     }

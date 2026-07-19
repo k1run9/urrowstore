@@ -15,10 +15,6 @@
     function notify(msg) { try { Lampa.Noty.show(msg); } catch (e) {} }
     function getVer() { try { return parseInt(Lampa.Manifest.version) || 0; } catch (e) { return 0; } }
 
-    function isLampaUrl(url) {
-        return typeof url === 'string' && /Lampa\./.test(url);
-    }
-
     // === AUTO-UPDATE ===
     function checkUpdate() {
         try {
@@ -88,8 +84,8 @@
     function installPlugin(p, cb) {
         ensureAgreement();
         try {
-            if (!p.url || !isLampaUrl(p.url)) {
-                notify('Невалидный URL плагина (требуется Lampa.*): ' + (p.url || ''));
+            if (!p.url) {
+                notify('URL плагина не задан');
                 if (cb) cb();
                 return;
             }

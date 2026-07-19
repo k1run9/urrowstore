@@ -5,7 +5,7 @@
     window.__urrow_store = true;
     console.log('[urrowstore] loaded');
 
-    var CATALOG_URL = 'https://k1run9.github.io/urrowstore/catalog.json';
+    var CATALOG_URL = 'https://k1run9.github.io/urrowstore/plugins.json';
     var VERSION_URL = 'https://k1run9.github.io/urrowstore/version.json';
     var CACHE_KEY = 'urrow_catalog_cache';
     var CACHE_TIME_KEY = 'urrow_catalog_cache_time';
@@ -52,7 +52,11 @@
                     Lampa.Storage.set(CACHE_KEY, d);
                     Lampa.Storage.set(CACHE_TIME_KEY, String(now));
                     cb(d);
-                } catch (e) { cb(cached || { version: '0', plugins: [] }); }
+                } catch (e) {
+                    var raw = typeof d === 'string' ? d : '';
+                    console.error('[urrowstore] JSON parse error:', e.message, '| response (first 200):', raw.substring(0, 200));
+                    cb(cached || { version: '0', plugins: [] });
+                }
             }, function () { cb(cached || { version: '0', plugins: [] }); });
         } catch (e) { cb(cached || { version: '0', plugins: [] }); }
     }
@@ -84,17 +88,38 @@
     function installPlugin(p, cb) {
         ensureAgreement();
         try {
-            if (!p.script_url || !isLampaUrl(p.script_url)) {
-                notify('Невалидный URL плагина (требуется Lampa.*): ' + (p.script_url || ''));
+            if (!p.url || !isLampaUrl(p.url)) {
+                notify('Невалидный URL плагина (требуется Lampa.*): ' + (p.url || ''));
                 if (cb) cb();
                 return;
             }
+            var curVer = getVer();
+            var minVer = parseInt(p.min_version) || 0;
+            var incompatible = minVer && curVer < minVer;
+            if (incompatible) {
+                var warnMsg = '⚠ ' + p.name + ': требуется v' + minVer + '+, у вас v' + curVer;
+                Lampa.Select.show({
+                    title: 'Несовместимость',
+                    items: [
+                        { title: 'Всё равно установить', onSelect: function () { doInstall(p, cb); } },
+                        { title: 'Отмена', onSelect: function () { if (cb) cb(); } }
+                    ]
+                });
+                notify(warnMsg);
+                return;
+            }
+            doInstall(p, cb);
+        } catch (e) { notify('Ошибка'); if (cb) cb(); }
+    }
+
+    function doInstall(p, cb) {
+        try {
             var ext = getExt();
-            if (!ext.some(function (e) { return e.url === p.script_url; })) {
-                ext.push({ url: p.script_url, name: p.name, author: p.author, status: 1 });
+            if (!ext.some(function (e) { return e.url === p.url; })) {
+                ext.push({ url: p.url, name: p.name, author: p.author, status: 1 });
                 Lampa.Storage.set('plugins', ext);
             }
-            activatePluginScript(p.script_url, p.name, function (ok) {
+            activatePluginScript(p.url, p.name, function (ok) {
                 notify(ok ? p.name + ' ✓' : p.name + ' (перезагрузите)');
                 if (cb) cb();
             });
@@ -103,9 +128,11 @@
 
     function uninstallPlugin(p, cb) {
         try {
-            Lampa.Storage.set('plugins', getExt().filter(function (e) { return e.url !== p.script_url; }));
-            if (Lampa.Plugins && Lampa.Plugins.remove) Lampa.Plugins.remove({ url: p.script_url });
-            notify(p.name + ' удалён (перезагрузите)');
+            Lampa.Storage.set('plugins', getExt().filter(function (e) { return e.url !== p.url; }));
+            if (Lampa.Plugins && Lampa.Plugins.remove) Lampa.Plugins.remove({ url: p.url });
+            var oldScript = document.querySelector('script[data-urrow-plugin="' + p.url + '"]');
+            if (oldScript) oldScript.remove();
+            notify(p.name + ' удалён');
             if (cb) cb();
         } catch (e) { if (cb) cb(); }
     }
@@ -136,7 +163,7 @@
             try {
                 var zones = el.querySelectorAll('.us-zone');
                 if (zones.length) {
-                    Lampa.Controller.collectionSet(zones[0]);
+                    Lampa.Controller.collectionSet(Array.prototype.slice.call(zones));
                 } else {
                     Lampa.Controller.collectionSet(el);
                 }
@@ -150,7 +177,7 @@
 
         self.filtered = function () {
             return state.all.filter(function (p) {
-                return (state.cat === 'all' || p.category === state.cat) && p.status !== 'broken';
+                return (state.cat === 'all' || p.category === state.cat) && p.enabled !== false;
             });
         };
 
@@ -172,8 +199,8 @@
             h += '</div>';
 
             var cats = {};
-            state.all.forEach(function (p) { if (p.status !== 'broken') cats[p.category] = (cats[p.category] || 0) + 1; });
-            var catNames = { interface:'Интерфейс', player:'Плеер', catalog:'Каталог', torrent:'Торренты', misc:'Прочее' };
+            state.all.forEach(function (p) { if (p.enabled !== false) cats[p.category] = (cats[p.category] || 0) + 1; });
+            var catNames = { system:'Система', content:'Контент', online:'Онлайн', ui:'Интерфейс', utility:'Утилиты', ai:'ИИ', music:'Музыка', other:'Прочее' };
             h += '<div class="us-zone us-tabs">';
             h += '<button class="selector us-tab ' + (state.cat === 'all' ? 'us-tab--on' : '') + '" data-cat="all">Все</button>';
             Object.keys(cats).forEach(function (c) {
@@ -183,9 +210,9 @@
 
             h += '<div class="us-zone us-list">';
             shown.forEach(function (p) {
-                var inst = isInst(p.script_url);
+                var inst = isInst(p.url);
                 var cls = 'us-card selector' + (inst ? ' us-card--in' : '');
-                var badge = p.status === 'broken' ? '<span class="us-card__badge us-card__badge--br">✗</span>'
+                var badge = p.enabled === false ? '<span class="us-card__badge us-card__badge--br">✗</span>'
                     : inst ? '<span class="us-card__badge us-card__badge--ok">✓</span>'
                     : '<span class="us-card__badge us-card__badge--old">+</span>';
 
@@ -214,7 +241,7 @@
                 card.addEventListener('hover:enter', function () {
                     var pid = card.getAttribute('data-pid');
                     var p = state.all.find(function (x) { return x.id === pid; });
-                    if (p) self.showActions(p, isInst(p.script_url));
+                    if (p) self.showActions(p, isInst(p.url));
                 });
                 card.addEventListener('hover:focus', function () {
                     card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -248,8 +275,8 @@
 
             el.querySelectorAll('[data-do="check"]').forEach(function (b) {
                 b.addEventListener('hover:enter', function () {
-                    var br = state.all.filter(function (p) { return p.status === 'broken'; }).length;
-                    notify(br ? 'Сломанных: ' + br : '✓ Все ок');
+                    var br = state.all.filter(function (p) { return p.enabled === false; }).length;
+                    notify(br ? 'Отключённых: ' + br : '✓ Все ок');
                     self.start();
                 });
             });
@@ -327,7 +354,12 @@
                         var r = (this.activity && this.activity.render) ? this.activity.render() : null;
                         if (!r) r = document.querySelector('.us');
                         if (r) {
-                            Lampa.Controller.collectionSet(r);
+                            var zones = r.querySelectorAll('.us-zone');
+                            if (zones.length) {
+                                Lampa.Controller.collectionSet(Array.prototype.slice.call(zones));
+                            } else {
+                                Lampa.Controller.collectionSet(r);
+                            }
                             var f = r.querySelector('.selector');
                             if (f) Lampa.Controller.collectionFocus(f, r);
                         }
@@ -337,7 +369,13 @@
                 enter: function () {
                     try {
                         var f = document.querySelector('.selector.focus');
-                        if (f) f.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+                        if (f) {
+                            if (typeof $ !== 'undefined') {
+                                $(f).trigger('hover:enter');
+                            } else {
+                                f.dispatchEvent(new CustomEvent('hover:enter'));
+                            }
+                        }
                     } catch (e) {}
                 },
                 back: function () { try { Lampa.Activity.backward(); } catch (e) {} }
@@ -354,10 +392,12 @@
         } catch (e) {}
 
         try {
-            if (Lampa.Menu && Lampa.Menu.addButton) {
-                Lampa.Menu.addButton({ name: 'URROW Store', description: 'Магазин плагинов',
-                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>',
-                    onSelect: openStore });
+            if (Lampa.Menu && Lampa.Menu.render) {
+                var menuSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>';
+                var menuBtn = $('<li class="menu__item selector"><div class="menu__ico">' + menuSvg + '</div><div class="menu__text">URROW Store</div></li>');
+                menuBtn.on('hover:enter', openStore);
+                var menuList = Lampa.Menu.render().find('.menu__list');
+                if (menuList.length) menuList.eq(0).append(menuBtn);
             }
         } catch (e) {}
 

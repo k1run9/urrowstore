@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // === СКРИПТ СБОРКИ КАТАЛОГА ПЛАГИНОВ ===
-// Читает sources.json, проверяет каждый плагин, генерирует catalog.json
+// Читает sources.json, проверяет каждый плагин, генерирует catalog.json (схема: url/enabled/min_version)
 
 const fs = require('fs');
 const path = require('path');
@@ -8,6 +8,7 @@ const crypto = require('crypto');
 
 const CATALOG_PATH = path.join(__dirname, 'catalog.json');
 const SOURCES_PATH = path.join(__dirname, 'sources.json');
+const PLUGINS_PATH = path.join(__dirname, 'plugins.json');
 const CHANGELOG_PATH = path.join(__dirname, 'CHANGELOG.md');
 const RATINGS_PATH = path.join(__dirname, 'ratings.json');
 
@@ -32,17 +33,13 @@ async function checkPlugin(source, prevCatalog) {
         name: source.name,
         description: source.description,
         author: source.author,
-        repo: source.repo,
-        script_url: source.script_url,
+        url: source.script_url,
         version: prev.version || '1.0.0',
-        min_lampa_version: source.min_lampa_version || '1980000',
-        max_lampa_version: source.max_lampa_version || null,
-        category: source.category || 'misc',
-        rating: prev.rating || { average: 0, count: 0, votes: [] },
-        downloads: prev.downloads || 0,
-        last_checked: new Date().toISOString(),
-        status: 'active',
-        checksum: prev.checksum || ''
+        min_version: source.min_version || '3.0.0',
+        category: source.category || 'other',
+        enabled: true,
+        checksum: prev.checksum || '',
+        last_checked: new Date().toISOString()
     };
 
     try {
@@ -53,19 +50,30 @@ async function checkPlugin(source, prevCatalog) {
         clearTimeout(timeout);
 
         if (!response.ok) {
-            result.status = 'broken';
+            result.enabled = false;
             console.log(`  ✗ ${source.id}: HTTP ${response.status}`);
             return result;
         }
 
         const text = await response.text();
-        const newChecksum = crypto.createHash('sha256').update(text).digest('hex');
+        const normalized = text
+            .replace(/\/\/.*$/gm, '')
+            .replace(/\/\*[\s\S]*?\*\//g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        const newChecksum = crypto.createHash('sha256').update(normalized).digest('hex');
 
         // Проверка на валидность Lampa плагина (должен содержать "Lampa.")
         if (!/Lampa\./.test(text) && text.indexOf('window.Lampa') === -1) {
-            result.status = 'deprecated';
+            result.enabled = false;
             console.log(`  ⚠ ${source.id}: не похоже на Lampa плагин (нет "Lampa.")`);
             return result;
+        }
+
+        // Если был отключён, но теперь содержит Lampa. — восстанавливаем
+        if (prev.enabled === false) {
+            result.enabled = true;
+            console.log(`  ↩ ${source.id}: восстановлен disabled → enabled`);
         }
 
         // Если чексумма изменилась — увеличиваем patch версию
@@ -80,7 +88,7 @@ async function checkPlugin(source, prevCatalog) {
         console.log(`  ✓ ${source.id}: OK v${result.version}`);
 
     } catch (e) {
-        result.status = 'broken';
+        result.enabled = false;
         console.log(`  ✗ ${source.id}: ${e.message}`);
     }
 
@@ -97,8 +105,8 @@ function updateChangelog(prevCatalog, newCatalog) {
         if (!prev) {
             lines.push(`- + **${p.name}** (${p.id}) — новый плагин\n`);
             hasChanges = true;
-        } else if (prev.status !== p.status) {
-            lines.push(`- ! **${p.name}** (${p.id}): ${prev.status} → ${p.status}\n`);
+        } else if (prev.enabled !== p.enabled) {
+            lines.push(`- ! **${p.name}** (${p.id}): ${prev.enabled ? 'enabled' : 'disabled'} → ${p.enabled ? 'enabled' : 'disabled'}\n`);
             hasChanges = true;
         } else if (prev.version !== p.version) {
             lines.push(`- ↑ **${p.name}** (${p.id}): v${prev.version} → v${p.version}\n`);
@@ -128,6 +136,10 @@ async function main() {
     const newPlugins = [];
 
     for (const source of sources) {
+        if (!source.id || !source.name || !source.script_url) {
+            console.error(`  ✗ SKIP: missing required field(s) — ${JSON.stringify({id: source.id, name: source.name, script_url: source.script_url})}`);
+            continue;
+        }
         const plugin = await checkPlugin(source, prevCatalog.plugins);
         // Восстанавливаем рейтинг из ratings.json
         if (ratings[plugin.id]) {
@@ -149,9 +161,9 @@ async function main() {
     saveJSON(CATALOG_PATH, newCatalog);
     console.log(`\nКаталог сохранён: ${newPlugins.length} плагинов`);
 
-    const broken = newPlugins.filter(p => p.status === 'broken');
+    const broken = newPlugins.filter(p => p.enabled === false);
     if (broken.length) {
-        console.log(`\n⚠ Сломанные плагины: ${broken.map(p => p.id).join(', ')}`);
+        console.log(`\n⚠ Отключённые плагины: ${broken.map(p => p.id).join(', ')}`);
     }
 }
 

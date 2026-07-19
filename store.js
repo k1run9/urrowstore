@@ -186,7 +186,7 @@
     // === EXTENSIONS ===
     function getExt() {
         try {
-            var e = Lampa.Storage.get('extensions', []);
+            var e = Lampa.Storage.get('plugins', []);
             return Array.isArray(e) ? e : [];
         } catch (x) { return []; }
     }
@@ -199,25 +199,21 @@
         try {
             var ext = getExt();
             if (!ext.some(function (e) { return e.url === p.script_url; })) {
-                ext.push({ url: p.script_url, name: p.name, author: p.author, enabled: 1, status: 1 });
-                Lampa.Storage.set('extensions', ext);
+                var plugin = { url: p.script_url, name: p.name, author: p.author, status: 1 };
+                ext.push(plugin);
+                Lampa.Storage.set('plugins', ext);
+
+                // Загружаем скрипт через официальный API
+                if (Lampa.Plugins && typeof Lampa.Plugins.push === 'function') {
+                    Lampa.Plugins.push(plugin);
+                } else if (Lampa.Utils && Lampa.Utils.putScriptAsync) {
+                    Lampa.Utils.putScriptAsync([p.script_url]);
+                }
             }
-            if (Lampa.Utils && Lampa.Utils.putScriptAsync) {
-                Lampa.Utils.putScriptAsync([p.script_url], function () {
-                    notify(p.name + ' ✓ установлен');
-                    if (cb) cb();
-                }, function () {
-                    notify(p.name + ' добавлен');
-                    if (cb) cb();
-                });
-            } else {
-                var s = document.createElement('script');
-                s.src = p.script_url;
-                document.body.appendChild(s);
-                notify(p.name + ' ✓');
-                if (cb) cb();
-            }
+            notify(p.name + ' ✓ установлен');
+            if (cb) cb();
         } catch (e) {
+            console.error('[urrowstore] installPlugin error:', e);
             notify('Ошибка установки');
             if (cb) cb();
         }
@@ -226,9 +222,17 @@
     function uninstallPlugin(p, cb) {
         try {
             var ext = getExt().filter(function (e) { return e.url !== p.script_url; });
-            Lampa.Storage.set('extensions', ext);
+            Lampa.Storage.set('plugins', ext);
+
+            // Удаляем через официальный API
+            if (Lampa.Plugins && typeof Lampa.Plugins.remove === 'function') {
+                Lampa.Plugins.remove({ url: p.script_url });
+            }
+
             notify(p.name + ' удалён');
-        } catch (e) {}
+        } catch (e) {
+            console.error('[urrowstore] uninstallPlugin error:', e);
+        }
         if (cb) cb();
     }
 

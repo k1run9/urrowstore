@@ -1,4 +1,4 @@
-/* URROW Store v3.1 — Магазин плагинов для Lampa */
+/* URROW Store v3.1.0 — Магазин плагинов для Lampa */
 (function () {
     'use strict';
     if (window.__urrow_store) return;
@@ -10,14 +10,19 @@
     var CACHE_KEY = 'urrow_catalog_cache';
     var CACHE_TIME_KEY = 'urrow_catalog_cache_time';
     var CACHE_TTL = 3 * 3600 * 1000;
+    var STORE_VERSION = '3.1.0';
 
     function notify(msg) { try { Lampa.Noty.show(msg); } catch (e) {} }
     function getVer() { try { return parseInt(Lampa.Manifest.version) || 0; } catch (e) { return 0; } }
 
+    function isLampaUrl(url) {
+        return typeof url === 'string' && /Lampa\./.test(url);
+    }
+
     // === AUTO-UPDATE ===
     function checkUpdate() {
         try {
-            var cur = Lampa.Storage.get('urrowstore_ver', '0');
+            var cur = Lampa.Storage.get('urrowstore_ver', STORE_VERSION);
             var ctrl = new AbortController();
             var t = setTimeout(function () { ctrl.abort(); }, 5000);
             fetch(VERSION_URL + '?t=' + Date.now(), { signal: ctrl.signal })
@@ -26,7 +31,7 @@
                     clearTimeout(t);
                     if (d.version && d.version !== cur) {
                         Lampa.Storage.set('urrowstore_ver', d.version);
-                        notify('📦 Обновите Lampa для применения версии ' + d.version);
+                        notify('📦 Доступна версия ' + d.version + '. Обновите Lampa.');
                     }
                 }).catch(function () {});
         } catch (e) {}
@@ -79,6 +84,11 @@
     function installPlugin(p, cb) {
         ensureAgreement();
         try {
+            if (!p.script_url || !isLampaUrl(p.script_url)) {
+                notify('Невалидный URL плагина (требуется Lampa.*): ' + (p.script_url || ''));
+                if (cb) cb();
+                return;
+            }
             var ext = getExt();
             if (!ext.some(function (e) { return e.url === p.script_url; })) {
                 ext.push({ url: p.script_url, name: p.name, author: p.author, status: 1 });
@@ -124,7 +134,12 @@
         self.start = function () {
             if (!el) return;
             try {
-                Lampa.Controller.collectionSet(el);
+                var zones = el.querySelectorAll('.us-zone');
+                if (zones.length) {
+                    Lampa.Controller.collectionSet(zones[0]);
+                } else {
+                    Lampa.Controller.collectionSet(el);
+                }
                 var first = el.querySelector('.selector');
                 if (first) Lampa.Controller.collectionFocus(first, el);
             } catch (e) {}
@@ -149,7 +164,7 @@
             var shown = f.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
             var h = '';
 
-            h += '<div class="us-row">';
+            h += '<div class="us-zone us-actions">';
             h += '<button class="selector us-b us-b--p" data-do="refresh">↻ Каталог</button>';
             h += '<button class="selector us-b us-b--s" data-do="check">✓ Проверить</button>';
             h += '<span style="flex:1"></span>';
@@ -159,14 +174,14 @@
             var cats = {};
             state.all.forEach(function (p) { if (p.status !== 'broken') cats[p.category] = (cats[p.category] || 0) + 1; });
             var catNames = { interface:'Интерфейс', player:'Плеер', catalog:'Каталог', torrent:'Торренты', misc:'Прочее' };
-            h += '<div class="us-tabs">';
+            h += '<div class="us-zone us-tabs">';
             h += '<button class="selector us-tab ' + (state.cat === 'all' ? 'us-tab--on' : '') + '" data-cat="all">Все</button>';
             Object.keys(cats).forEach(function (c) {
                 h += '<button class="selector us-tab ' + (state.cat === c ? 'us-tab--on' : '') + '" data-cat="' + c + '">' + (catNames[c] || c) + '</button>';
             });
             h += '</div>';
 
-            h += '<div class="us-list">';
+            h += '<div class="us-zone us-list">';
             shown.forEach(function (p) {
                 var inst = isInst(p.script_url);
                 var cls = 'us-card selector' + (inst ? ' us-card--in' : '');
@@ -175,10 +190,8 @@
                     : '<span class="us-card__badge us-card__badge--old">+</span>';
 
                 h += '<div class="' + cls + '" data-pid="' + p.id + '">';
-                h += '<div class="us-card__icon">' + p.icon + '</div>';
                 h += '<div class="us-card__info">';
                 h += '<div class="us-card__name">' + p.name + '</div>';
-                h += '<div class="us-card__author">' + p.author + ' · v' + p.version + '</div>';
                 h += '<div class="us-card__desc">' + p.description + '</div>';
                 h += '</div>';
                 h += badge;
@@ -189,12 +202,14 @@
             if (page < pages - 1) h += '<div class="us-more selector" data-do="more">Показать ещё (' + (total - (page + 1) * 20) + ')</div>';
             if (!total) h += '<div class="us-empty">Ничего не найдено</div>';
 
+            if (!el) return;
             el.innerHTML = h;
             self.bind();
             self.start();
         };
 
         self.bind = function () {
+            if (!el) return;
             el.querySelectorAll('.us-card').forEach(function (card) {
                 card.addEventListener('hover:enter', function () {
                     var pid = card.getAttribute('data-pid');
@@ -265,6 +280,7 @@
         s.id = 'urrow-store-css';
         s.textContent = [
             '.us{padding:1em;max-width:900px;margin:0 auto}',
+            '.us-zone{margin-bottom:0.5em}',
             '.us-row{display:flex;gap:0.5em;margin-bottom:1em;align-items:center}',
             '.us-b{padding:0.5em 1em;border-radius:0.5em;border:2px solid transparent;cursor:pointer;font-size:0.85em;font-weight:600;color:#fff;transition:all .2s ease}',
             '.us-b--p{background:linear-gradient(135deg,#667eea,#764ba2)}',
@@ -329,6 +345,15 @@
         } catch (e) {}
 
         try {
+            if (Lampa.Head && Lampa.Head.addIcon) {
+                Lampa.Head.addIcon({
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>',
+                    onSelect: openStore
+                });
+            }
+        } catch (e) {}
+
+        try {
             if (Lampa.Menu && Lampa.Menu.addButton) {
                 Lampa.Menu.addButton({ name: 'URROW Store', description: 'Магазин плагинов',
                     icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>',
@@ -339,7 +364,7 @@
         try {
             if (Lampa.SettingsApi) {
                 Lampa.SettingsApi.addComponent({ component: 'urrowstore', icon: '📦', name: 'URROW Store' });
-                Lampa.SettingsApi.addParam({ component: 'urrowstore', param: { name: 'urrowstore_ver', type: 'static' }, field: { name: 'Версия', description: Lampa.Storage.get('urrowstore_ver', '3.1.0') } });
+                Lampa.SettingsApi.addParam({ component: 'urrowstore', param: { name: 'urrowstore_ver', type: 'static' }, field: { name: 'Версия', description: Lampa.Storage.get('urrowstore_ver', STORE_VERSION) } });
             }
         } catch (e) {}
 

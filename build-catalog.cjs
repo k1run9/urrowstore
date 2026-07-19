@@ -61,10 +61,10 @@ async function checkPlugin(source, prevCatalog) {
         const text = await response.text();
         const newChecksum = crypto.createHash('sha256').update(text).digest('hex');
 
-        // Проверка на валидность Lampa плагина
-        if (text.indexOf('Lampa.') === -1 && text.indexOf('window.Lampa') === -1 && text.indexOf('Lampa.Component') === -1) {
+        // Проверка на валидность Lampa плагина (должен содержать "Lampa.")
+        if (!/Lampa\./.test(text) && text.indexOf('window.Lampa') === -1) {
             result.status = 'deprecated';
-            console.log(`  ⚠ ${source.id}: не похоже на Lampa плагин`);
+            console.log(`  ⚠ ${source.id}: не похоже на Lampa плагин (нет "Lampa.")`);
             return result;
         }
 

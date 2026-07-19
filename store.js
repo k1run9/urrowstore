@@ -167,7 +167,12 @@
         self.start = function () {
             if (!el) return;
             try {
-                Lampa.Controller.collectionSet(el);
+                var zones = el.querySelectorAll('.us-zone');
+                if (zones.length) {
+                    Lampa.Controller.collectionSet(Array.prototype.slice.call(zones));
+                } else {
+                    Lampa.Controller.collectionSet(el);
+                }
                 var first = el.querySelector('.selector');
                 if (first) Lampa.Controller.collectionFocus(first, el);
             } catch (e) {}
@@ -372,10 +377,24 @@
                         var r = (this.activity && this.activity.render) ? this.activity.render() : null;
                         if (!r) r = document.querySelector('.us');
                         if (r) {
-                            Lampa.Controller.collectionSet(r);
+                            var zones = r.querySelectorAll('.us-zone');
+                            if (zones.length) {
+                                Lampa.Controller.collectionSet(Array.prototype.slice.call(zones));
+                            } else {
+                                Lampa.Controller.collectionSet(r);
+                            }
                             var f = r.querySelector('.selector');
                             if (f) Lampa.Controller.collectionFocus(f, r);
                         }
+                    } catch (e) {}
+                },
+                move: function (d) {
+                    try { Lampa.Controller.move(d); } catch (e) {}
+                },
+                enter: function () {
+                    try {
+                        var f = document.querySelector('.selector.focus');
+                        if (f) $(f).trigger('hover:enter');
                     } catch (e) {}
                 },
                 back: function () { try { Lampa.Activity.backward(); } catch (e) {} }

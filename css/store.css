@@ -1,0 +1,382 @@
+.urrow-store {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: inherit;
+}
+
+.urrow-store__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.urrow-store__title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.urrow-store__title-icon {
+    font-size: 28px;
+}
+
+.urrow-store__version {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.urrow-store__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.urrow-store__btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.urrow-store__btn--primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+}
+
+.urrow-store__btn--primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.urrow-store__btn--secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.urrow-store__btn--secondary:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.urrow-store__categories {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.urrow-store__cat {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    background: transparent;
+}
+
+.urrow-store__cat--active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-color: transparent;
+    color: #fff;
+}
+
+.urrow-store__cat:hover {
+    border-color: rgba(102, 126, 234, 0.5);
+    color: #fff;
+}
+
+.urrow-store__section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 20px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.urrow-store__section-count {
+    font-size: 11px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.urrow-store__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 12px;
+}
+
+.urrow-store__card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.urrow-store__card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(102, 126, 234, 0.3);
+    transform: translateY(-2px);
+}
+
+.urrow-store__card--installed {
+    border-color: rgba(102, 126, 234, 0.25);
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.urrow-store__card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.urrow-store__card-icon {
+    font-size: 32px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.urrow-store__card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.urrow-store__card-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.urrow-store__card-author {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.urrow-store__card-desc {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 6px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.urrow-store__card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+}
+
+.urrow-store__card-tags {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.urrow-store__tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.urrow-store__card-version {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.urrow-store__card-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.urrow-store__install-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.urrow-store__install-btn--install {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+}
+
+.urrow-store__install-btn--install:hover {
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+.urrow-store__install-btn--remove {
+    background: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+}
+
+.urrow-store__install-btn--remove:hover {
+    background: rgba(231, 76, 60, 0.25);
+}
+
+.urrow-store__install-btn--toggle {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.urrow-store__install-btn--toggle:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.urrow-store__install-btn--update {
+    background: rgba(241, 196, 15, 0.15);
+    color: #f1c40f;
+}
+
+.urrow-store__install-btn--update:hover {
+    background: rgba(241, 196, 15, 0.25);
+}
+
+.urrow-store__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.urrow-store__status--installed {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+}
+
+.urrow-store__status--available {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.urrow-store__status--update {
+    background: rgba(241, 196, 15, 0.15);
+    color: #f1c40f;
+}
+
+.urrow-store__loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.urrow-store__loading-spinner {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: urrow-spin 0.8s linear infinite;
+    margin-bottom: 12px;
+}
+
+@keyframes urrow-spin {
+    to { transform: rotate(360deg); }
+}
+
+.urrow-store__empty {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.urrow-store__empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.urrow-store__search {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.urrow-store__search input {
+    width: 100%;
+    padding: 10px 14px 10px 36px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    color: #fff;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.urrow-store__search input:focus {
+    border-color: rgba(102, 126, 234, 0.5);
+}
+
+.urrow-store__search input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.urrow-store__search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 14px;
+}
+
+.urrow-store__stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.urrow-store__stat {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.urrow-store__stat-value {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 700;
+}

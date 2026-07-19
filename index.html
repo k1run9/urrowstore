@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URROW Store — Магазин плагинов для Lampa</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 600px;
+            padding: 40px;
+            text-align: center;
+        }
+        .logo { font-size: 64px; margin-bottom: 20px; }
+        h1 { font-size: 32px; margin-bottom: 12px; }
+        .subtitle { color: rgba(255,255,255,0.5); font-size: 16px; margin-bottom: 32px; }
+        .url-box {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #667eea;
+            word-break: break-all;
+            user-select: all;
+        }
+        .instructions {
+            text-align: left;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+        .instructions h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: rgba(255,255,255,0.9);
+        }
+        .step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .step-num {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .footer {
+            margin-top: 32px;
+            color: rgba(255,255,255,0.3);
+            font-size: 12px;
+        }
+        a { color: #667eea; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📦</div>
+        <h1>URROW Store</h1>
+        <div class="subtitle">Магазин плагинов для Lampa</div>
+
+        <div class="url-box">https://urrow.github.io/urrowstore/store.js</div>
+
+        <div class="instructions">
+            <h2>Как установить</h2>
+            <div class="step">
+                <div class="step-num">1</div>
+                <div>Скопируйте ссылку выше</div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div>Откройте Lampa → Настройки → Плагины</div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div>Нажмите «Добавить плагин» и вставьте ссылку</div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <div>Подтвердите установку и перезапустите Lampa</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>GitHub: <a href="https://github.com/urrow/urrowstore">urrow/urrowstore</a></p>
+        </div>
+    </div>
+</body>
+</html>

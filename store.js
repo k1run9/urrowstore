@@ -55,6 +55,35 @@
         }
     }
 
+    // === HEADER ICON (Lampa.Head.addIcon) ===
+    function addHeaderIcon() {
+        try {
+            if (Lampa.Head && typeof Lampa.Head.addIcon === 'function') {
+                Lampa.Head.addIcon(
+                    '<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" stroke-width="2"/><path d="M7 12h10M12 7v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+                    function () { openStore(); }
+                );
+                console.log('[urrowstore] Head.addIcon выполнен');
+                return;
+            }
+        } catch (e) {
+            console.warn('[urrowstore] Head.addIcon не удался, пробуем DOM:', e);
+        }
+
+        // Фолбэк: прямая вставка в .head__actions
+        try {
+            var $ = window.jQuery || window.$;
+            if ($ && $('.head__actions').length) {
+                var btn = $('<div class="head__action selector" tabindex="0"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" stroke-width="2"/><path d="M7 12h10M12 7v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>');
+                btn.on('hover:enter click', function () { openStore(); });
+                $('.head__actions').prepend(btn);
+                console.log('[urrowstore] Иконка в шапку добавлена через DOM');
+            }
+        } catch (e2) {
+            console.error('[urrowstore] DOM fallback не удался:', e2);
+        }
+    }
+
     // === MENU BUTTON (Lampa.Menu.addButton) ===
     function addMenuButton() {
         if (!Lampa.Menu || typeof Lampa.Menu.addButton !== 'function') {
@@ -553,7 +582,10 @@
             console.error('[urrowstore] Component.add error:', e);
         }
 
-        // Иконка в меню
+        // Иконка в шапку (рядом с поиском)
+        addHeaderIcon();
+
+        // Иконка в боковое меню
         addMenuButton();
 
         // Раздел в настройках

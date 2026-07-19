@@ -610,9 +610,32 @@
                     param: { name: 'urrow_auto_update', type: 'trigger', default: true },
                     field: { name: 'Авто-обновление каталога' }
                 });
+                // Кнопка перезагрузки — очищает кэш store.js и перезагружает страницу
+                Lampa.SettingsApi.addParam({
+                    component: 'urrow_store',
+                    param: { name: 'urrow_reload', type: 'trigger', default: false },
+                    field: { name: '🔄 Перезагрузить магазин', description: 'Очистить кэш и перезагрузить store.js (без переустановки)' }
+                });
             } catch (e) {
                 console.error('[urrowstore] SettingsApi error:', e);
             }
+        }
+
+        // Слушаем изменение настройки перезагрузки
+        if (Lampa.Storage && Lampa.Storage.listener) {
+            Lampa.Storage.listener.follow('change', function (e) {
+                if (e.name === 'urrow_reload' && e.value) {
+                    // Снимаем флаг что плагин загружен
+                    window.__urrow_store = false;
+                    // Чистим кэш каталога
+                    Lampa.Storage.remove(CACHE_KEY);
+                    Lampa.Storage.remove(CACHE_TIME_KEY);
+                    // Сбрасываем настройку
+                    Lampa.Storage.set('urrow_reload', false);
+                    notify('🔄 Перезагрузка...');
+                    setTimeout(function () { window.location.reload(); }, 500);
+                }
+            });
         }
 
         // Логирование версии для диагностики

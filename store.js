@@ -1,4 +1,4 @@
-/* URROW Store v3.0 — Упрощённый магазин для Lampa */
+/* URROW Store v3.0.1 — Упрощённый магазин для Lampa */
 (function () {
     'use strict';
     if (window.__urrow_store) return;
@@ -16,7 +16,7 @@
     function notify(msg) { try { Lampa.Noty.show(msg); } catch (e) {} }
     function getVer() { try { return parseInt(Lampa.Manifest.version) || 0; } catch (e) { return 0; } }
 
-    // === AUTO-UPDATE ===
+    // === AUTO-UPDATE (Вариант А: уведомление вместо hot-reload) ===
     function checkUpdate() {
         try {
             var cur = Lampa.Storage.get('urrowstore_ver', '0');
@@ -28,9 +28,8 @@
                     clearTimeout(t);
                     if (d.version && d.version !== cur) {
                         Lampa.Storage.set('urrowstore_ver', d.version);
-                        var s = document.createElement('script');
-                        s.src = STORE_URL + '?v=' + d.version;
-                        document.body.appendChild(s);
+                        notify('📦 Доступна новая версия магазина (' + d.version + '). Перезапустите Lampa.');
+                        console.log('[urrowstore] Новая версия:', d.version, '(текущая:', cur + ')');
                     }
                 }).catch(function () {});
         } catch (e) {}
@@ -354,24 +353,27 @@
 
         try {
             if (Lampa.Head && Lampa.Head.addIcon) {
-                Lampa.Head.addIcon('<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" stroke-width="2"/><path d="M7 12h10M12 7v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>', function () { openStore(); });
+                Lampa.Head.addIcon('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>', function () { openStore(); });
+                console.log('[urrowstore] Head.addIcon OK');
             }
-        } catch (e) {}
+        } catch (e) { console.error('[urrowstore] Head.addIcon error:', e); }
 
         try {
             if (Lampa.Menu && Lampa.Menu.addButton) {
                 Lampa.Menu.addButton({ name: 'URROW Store', description: 'Магазин плагинов',
-                    icon: '<svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" stroke-width="2"/><path d="M7 12h10M12 7v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>',
                     onSelect: openStore });
+                console.log('[urrowstore] Menu.addButton OK');
             }
-        } catch (e) {}
+        } catch (e) { console.error('[urrowstore] Menu.addButton error:', e); }
 
         try {
             if (Lampa.SettingsApi) {
                 Lampa.SettingsApi.addComponent({ component: 'urrowstore', icon: '📦', name: 'URROW Store' });
-                Lampa.SettingsApi.addParam({ component: 'urrowstore', param: { name: 'urrowstore_ver', type: 'static' }, field: { name: 'Версия', description: Lampa.Storage.get('urrowstore_ver', '3.0.0') } });
+                Lampa.SettingsApi.addParam({ component: 'urrowstore', param: { name: 'urrowstore_ver', type: 'static' }, field: { name: 'Версия', description: Lampa.Storage.get('urrowstore_ver', '3.0.1') } });
+                console.log('[urrowstore] SettingsApi OK');
             }
-        } catch (e) {}
+        } catch (e) { console.error('[urrowstore] SettingsApi error:', e); }
 
         checkUpdate();
         console.log('[urrowstore] ready');

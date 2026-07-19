@@ -18,14 +18,18 @@
     // Ждём готовности DOM шапки перед добавлением иконок
     function waitForHeaderReady(cb, attempts) {
         attempts = attempts || 0;
-        if (attempts > 50) {
-            console.warn('[urrowstore] Шапка не найдена после 50 попыток, кнопка не добавлена');
+        if (attempts > 100) {
+            console.warn('[urrowstore] Шапка не найдена после 100 попыток');
             return;
         }
-        var headExists = typeof window.$ !== 'undefined' && $('.head').length > 0;
-        var actionsExist = headExists && ($('.head__actions').length > 0 || $('.head__menu').length > 0 || $('.head__icon').length > 0);
-        if (headExists && actionsExist) cb();
-        else setTimeout(function () { waitForHeaderReady(cb, attempts + 1); }, 100);
+        try {
+            var $ = window.jQuery || window.$;
+            var headExists = $ && $('.head').length > 0;
+            if (headExists) cb();
+            else setTimeout(function () { waitForHeaderReady(cb, attempts + 1); }, 100);
+        } catch (e) {
+            setTimeout(function () { waitForHeaderReady(cb, attempts + 1); }, 100);
+        }
     }
 
     waitForLampa(function () {
@@ -564,10 +568,10 @@
 
         // === HEADER ===
         function addHeaderButton() {
-            // Защита от дублирования
-            if ($('.urrowstore-header-btn').length) return;
-
             try {
+                var $ = window.jQuery || window.$;
+                if ($ && $('.urrowstore-header-btn').length) return;
+
                 if (!Lampa.Head || typeof Lampa.Head.addIcon !== 'function') {
                     console.warn('[urrowstore] Lampa.Head.addIcon недоступен');
                     return;
@@ -576,8 +580,9 @@
                     '<svg class="urrowstore-header-btn" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
                     function () { openStore(); }
                 );
+                console.log('[urrowstore] Кнопка в шапке добавлена');
             } catch (e) {
-                console.error('[urrowstore] Ошибка addHeaderButton:', e);
+                console.error('[urrowstore] addHeaderButton error:', e);
             }
         }
 
@@ -601,6 +606,24 @@
                 });
             } catch (e) {
                 console.error('[urrowstore] Menu.addButton error:', e);
+            }
+        }
+
+        // Настройки
+        if (Lampa.SettingsApi) {
+            try {
+                Lampa.SettingsApi.addComponent({
+                    component: 'urrow_store',
+                    name: 'URROW Store',
+                    icon: '📦'
+                });
+                Lampa.SettingsApi.addParam({
+                    component: 'urrow_store',
+                    param: { name: 'urrow_auto_update', type: 'trigger', default: true },
+                    field: { name: 'Авто-обновление каталога' }
+                });
+            } catch (e) {
+                console.error('[urrowstore] SettingsApi error:', e);
             }
         }
 

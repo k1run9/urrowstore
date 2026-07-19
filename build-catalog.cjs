@@ -1,0 +1,161 @@
+#!/usr/bin/env node
+// === СКРИПТ СБОРКИ КАТАЛОГА ПЛАГИНОВ ===
+// Читает sources.json, проверяет каждый плагин, генерирует catalog.json
+
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+const CATALOG_PATH = path.join(__dirname, 'catalog.json');
+const SOURCES_PATH = path.join(__dirname, 'sources.json');
+const CHANGELOG_PATH = path.join(__dirname, 'CHANGELOG.md');
+const RATINGS_PATH = path.join(__dirname, 'ratings.json');
+
+// === ЗАГРУЗКА ДАННЫХ ===
+function loadJSON(filepath, fallback) {
+    try {
+        return JSON.parse(fs.readFileSync(filepath, 'utf8'));
+    } catch (e) {
+        return fallback;
+    }
+}
+
+function saveJSON(filepath, data) {
+    fs.writeFileSync(filepath, JSON.stringify(data, null, 2), 'utf8');
+}
+
+// === ПРОВЕРКА ПЛАГИНА ===
+async function checkPlugin(source, prevCatalog) {
+    const prev = prevCatalog.find(p => p.id === source.id) || {};
+    const result = {
+        id: source.id,
+        name: source.name,
+        description: source.description,
+        author: source.author,
+        repo: source.repo,
+        script_url: source.script_url,
+        version: prev.version || '1.0.0',
+        min_lampa_version: source.min_lampa_version || '1980000',
+        max_lampa_version: source.max_lampa_version || null,
+        category: source.category || 'misc',
+        rating: prev.rating || { average: 0, count: 0, votes: [] },
+        downloads: prev.downloads || 0,
+        last_checked: new Date().toISOString(),
+        status: 'active',
+        checksum: prev.checksum || ''
+    };
+
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+
+        const response = await fetch(source.script_url, { signal: controller.signal });
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+            result.status = 'broken';
+            console.log(`  ✗ ${source.id}: HTTP ${response.status}`);
+            return result;
+        }
+
+        const text = await response.text();
+        const newChecksum = crypto.createHash('sha256').update(text).digest('hex');
+
+        // Проверка на валидность Lampa плагина
+        if (text.indexOf('Lampa.') === -1 && text.indexOf('window.Lampa') === -1 && text.indexOf('Lampa.Component') === -1) {
+            result.status = 'deprecated';
+            console.log(`  ⚠ ${source.id}: не похоже на Lampa плагин`);
+            return result;
+        }
+
+        // Если чексумма изменилась — увеличиваем patch версию
+        if (prev.checksum && prev.checksum !== newChecksum) {
+            const parts = result.version.split('.');
+            parts[2] = parseInt(parts[2] || 0) + 1;
+            result.version = parts.join('.');
+            console.log(`  ↑ ${source.id}: обновлён v${result.version}`);
+        }
+
+        result.checksum = newChecksum;
+        console.log(`  ✓ ${source.id}: OK v${result.version}`);
+
+    } catch (e) {
+        result.status = 'broken';
+        console.log(`  ✗ ${source.id}: ${e.message}`);
+    }
+
+    return result;
+}
+
+// === ГЕНЕРАЦИЯ CHANGELOG ===
+function updateChangelog(prevCatalog, newCatalog) {
+    const lines = [`# CHANGELOG\n\n## ${new Date().toISOString().slice(0, 10)}\n\n`];
+    let hasChanges = false;
+
+    newCatalog.forEach(p => {
+        const prev = prevCatalog.find(x => x.id === p.id);
+        if (!prev) {
+            lines.push(`- + **${p.name}** (${p.id}) — новый плагин\n`);
+            hasChanges = true;
+        } else if (prev.status !== p.status) {
+            lines.push(`- ! **${p.name}** (${p.id}): ${prev.status} → ${p.status}\n`);
+            hasChanges = true;
+        } else if (prev.version !== p.version) {
+            lines.push(`- ↑ **${p.name}** (${p.id}): v${prev.version} → v${p.version}\n`);
+            hasChanges = true;
+        }
+    });
+
+    if (!hasChanges) {
+        lines.push('Изменений нет.\n');
+    }
+
+    const existing = fs.existsSync(CHANGELOG_PATH) ? fs.readFileSync(CHANGELOG_PATH, 'utf8') : '';
+    fs.writeFileSync(CHANGELOG_PATH, lines.join('') + '\n' + existing, 'utf8');
+}
+
+// === MAIN ===
+async function main() {
+    console.log('=== URROW Store: сборка каталога ===\n');
+
+    const sources = loadJSON(SOURCES_PATH, []);
+    const prevCatalog = loadJSON(CATALOG_PATH, { version: '1.0.0', updated: '', plugins: [] });
+    const ratings = loadJSON(RATINGS_PATH, {});
+
+    console.log(`Источников: ${sources.length}`);
+    console.log(`Предыдущий каталог: ${prevCatalog.plugins.length} плагинов\n`);
+
+    const newPlugins = [];
+
+    for (const source of sources) {
+        const plugin = await checkPlugin(source, prevCatalog.plugins);
+        // Восстанавливаем рейтинг из ratings.json
+        if (ratings[plugin.id]) {
+            plugin.rating = ratings[plugin.id];
+        }
+        newPlugins.push(plugin);
+    }
+
+    const newCatalog = {
+        version: prevCatalog.version,
+        updated: new Date().toISOString(),
+        plugins: newPlugins
+    };
+
+    // Обновляем CHANGELOG
+    updateChangelog(prevCatalog.plugins, newPlugins);
+
+    // Сохраняем каталог
+    saveJSON(CATALOG_PATH, newCatalog);
+    console.log(`\nКаталог сохранён: ${newPlugins.length} плагинов`);
+
+    const broken = newPlugins.filter(p => p.status === 'broken');
+    if (broken.length) {
+        console.log(`\n⚠ Сломанные плагины: ${broken.map(p => p.id).join(', ')}`);
+    }
+}
+
+main().catch(e => {
+    console.error('Ошибка:', e);
+    process.exit(1);
+});

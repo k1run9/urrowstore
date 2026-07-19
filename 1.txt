@@ -1,0 +1,104 @@
+ЗАДАЧА: Полностью переработать репозиторий k1run9/urrowstore — превратить статичный список плагинов Lampa в динамический каталог с оценками, автообновлением через GitHub Actions и проверкой совместимости версий.
+
+КОНТЕКСТ ПРОЕКТА:
+- Репозиторий: https://github.com/k1run9/urrowstore
+- Текущий файл: store.js (~450 строк), подключается в Lampa как расширение через Lampa.Storage
+- Хостинг: GitHub Pages (k1run9.github.io/urrowstore)
+- Целевое приложение: Lampa (медиаплеер, API: Lampa.Component, Lampa.Activity, Lampa.Storage, Lampa.Controller, Lampa.Listener)
+- ИЗВЕСТНАЯ ТЕКУЩАЯ ОШИБКА: плагины после установки через store.js не появляются в Настройки → Расширения Lampa. Причина: Lampa хранит список активных расширений в Lampa.Storage под ключом "extensions" (массив объектов {name, url, enabled}), а текущий код пишет в неверный/несуществующий ключ. Это нужно исправить как приоритет №0.
+
+ЦЕЛЬ АРХИТЕКТУРЫ:
+Разделить проект на 4 независимых слоя:
+1. Каталог данных (catalog.json) — генерируется автоматически
+2. Backend-скрипт сборки каталога (build-catalog.js, Node.js)
+3. GitHub Actions workflow для автообновления каталога по расписанию
+4. Frontend store.js — рендерит каталог внутри Lampa, ничего не хардкодит
+
+===== ЧАСТЬ 1: СТРУКТУРА ДАННЫХ catalog.json =====
+
+Формат одного элемента плагина:
+{
+  "id": "unique-slug",
+  "name": "Название плагина",
+  "description": "Короткое описание на русском",
+  "author": "имя автора / GitHub handle",
+  "repo": "https://github.com/автор/репо",
+  "script_url": "https://raw.githubusercontent.com/.../plugin.js",
+  "version": "1.2.0",
+  "min_lampa_version": "1980000",
+  "max_lampa_version": null,
+  "category": "interface|player|catalog|torrent|misc",
+  "rating": {
+    "average": 4.6,
+    "count": 23,
+    "votes": [{"user_hash": "...", "value": 5, "timestamp": 1234567890}]
+  },
+  "downloads": 1523,
+  "last_checked": "2026-07-19T00:00:00Z",
+  "status": "active|broken|deprecated",
+  "checksum": "sha256 хеш script_url для детекта изменений"
+}
+
+Хранить catalog.json в корне репозитория, обновлять через commit от GitHub Actions.
+Хранить рейтинги отдельно в ratings.json (голоса пользователей, привязанные к анонимному hash от их User-Agent+IP-заголовка через прокси, либо через простую cloud-функцию — обсудить, если нет своего backend).
+
+===== ЧАСТЬ 2: build-catalog.js (Node.js скрипт для CI) =====
+
+Функции скрипта:
+1. Прочитать sources.json — список исходных репозиториев плагинов (source of truth, редактируется вручную).
+2. Для каждого источника:
+   - Скачать текущую версию script_url через fetch/axios.
+   - Посчитать SHA-256 checksum содержимого.
+   - Сравнить с предыдущим checksum из catalog.json — если изменился, увеличить version (semver patch) и обновить last_checked.
+   - Попытаться распарсить версию Lampa API, которую использует плагин (искать паттерны Lampa.Component.add, Lampa.Activity.push, window.Lampa — базовая статическая проверка на использование deprecated методов).
+   - Сделать HTTP HEAD/GET запрос на script_url — если 404/500, поставить status: "broken".
+3. Записать обновлённый catalog.json.
+4. Логировать все изменения в CHANGELOG.md.
+
+Технологии: Node.js 20+, node-fetch или встроенный fetch, crypto (для sha256), fs/promises. Без внешних зависимостей, если возможно, либо минимальный package.json (только необходимые пакеты).
+
+===== ЧАСТЬ 3: GitHub Actions workflow =====
+
+Файл: .github/workflows/update-catalog.yml
+
+Требования:
+- Триггер: schedule (cron '0 */6 * * *' — раз в 6 часов) + workflow_dispatch (ручной запуск) + push на sources.json (мгновенное обновление при ручном редактировании списка).
+- Шаги: checkout репо → setup-node → npm ci (если есть зависимости) → node build-catalog.js → git commit & push изменённого catalog.json с сообщением "chore: auto-update catalog [skip ci]" → (опционально) публикация в GitHub Pages.
+- Использовать GITHUB_TOKEN для push без ручной настройки secrets.
+- Добавить job проверки на поломанные плагины: если status меняется на "broken", создавать GitHub Issue автоматически через actions/github-script.
+
+===== ЧАСТЬ 4: ПРОВЕРКА СОВМЕСТИМОСТИ ВЕРСИЙ =====
+
+Реализовать функцию compareLampaVersion(current, min, max) в store.js:
+- Lampa хранит свою версию в Lampa.Manifest.version или можно извлечь из URL app.min.js?v=XXXXX (query параметр v).
+- Функция должна: получить текущую версию через window.location или через Lampa.Manifest, сравнить числовые версии как целые числа (Lampa версии — это timestamp-подобные числа, не semver).
+- Если current < min_lampa_version → показать плагин в каталоге с бейджем "Требуется обновление Lampa" и заблокировать кнопку установки (или показать предупреждение перед установкой, но разрешить форсированную установку через долгое нажатие).
+- Если max_lampa_version задан и current > max → бейдж "Может не работать на новой версии".
+
+===== ЧАСТЬ 5: FRONTEND store.js (переработка) =====
+
+Требования к UI/UX внутри Lampa:
+- Загружать catalog.json через fetch при открытии магазина (с кэшированием на 1 час в Lampa.Storage, инвалидация по кнопке "Обновить каталог").
+- Каждая карточка плагина должна иметь класс .selector для навигации пультом (обязательно — это была прошлая критичная ошибка).
+- Использовать Lampa.Controller.add / .collectionSet / .collectionFocus корректно при каждой перерисовке списка (не терять фокус после re-render).
+- Отображать: название, автора, рейтинг (звёзды), статус совместимости, кнопку "Установить/Удалить/Обновить".
+- При установке: записать в Lampa.Storage.set('extensions', [...текущий_массив, {name, url: script_url, enabled: true}]) — ИСПРАВИТЬ существующий баг с неверным storage-ключом.
+- После install/uninstall — вызвать Lampa.Settings и принудительно перерисовать секцию расширений, чтобы статус обновился мгновенно без перезагрузки приложения.
+- Добавить простую систему рейтинга: кнопка "Оценить" открывает Lampa.Select с вариантами 1-5 звёзд, отправляет POST на простой backend (или GitHub Issue через API, если нет отдельного сервера) для сохранения голоса.
+- Обработать все edge cases: пустой каталог, offline (нет интернета — показать кэш), сломанный JSON (try/catch на JSON.parse).
+
+===== ТЕХ. ТРЕБОВАНИЯ К КОДУ =====
+- Только vanilla JS (ES5/ES6 совместимо с окружением Lampa, никаких сборщиков на фронте).
+- Комментарии на русском, лаконичные, только там, где логика не очевидна.
+- Разделить store.js на логические секции комментариями: // === CATALOG LOADER ===, // === RENDER === и т.д.
+- Все сетевые запросы — с таймаутом и fallback на кэш.
+- Итоговый коммит и push в main через git, как в предыдущей итерации.
+
+ПРИОРИТЕТ ВЫПОЛНЕНИЯ:
+1. Исправить баг с установкой расширений (storage key) — критично, без этого остальное бесполезно.
+2. Реализовать catalog.json + build-catalog.js.
+3. Настроить GitHub Actions workflow.
+4. Переписать frontend store.js под новый динамический каталог.
+5. Добавить систему рейтингов (можно как MVP — просто локальный счётчик в localStorage, без backend, если сервер делать не хочется).
+
+После завершения — вывести итоговый список изменённых/созданных файлов и краткое summary, что было исправлено относительно прошлой версии.

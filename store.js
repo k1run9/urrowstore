@@ -1,34 +1,26 @@
-/* URROW Store — Магазин плагинов для Lampa */
+/* URROW Store v2 — Магазин плагинов для Lampa */
 (function () {
     'use strict';
 
     if (window.__urrow_store) return;
     window.__urrow_store = true;
 
-    var CATALOG_URL = 'https://k1run9.github.io/urrowstore/plugins.json';
-    var STORAGE_KEY = 'urrow_store_installed';
-    var STORAGE_CACHE = 'urrow_store_catalog_cache';
-    var STORAGE_CACHE_TIME = 'urrow_store_cache_time';
-    var CACHE_TTL = 3600000;
+    // === КОНФИГУРАЦИЯ ===
+    var CATALOG_URL = 'https://k1run9.github.io/urrowstore/catalog.json';
+    var RATINGS_URL = 'https://k1run9.github.io/urrowstore/ratings.json';
+    var CACHE_KEY = 'urrow_catalog_cache';
+    var CACHE_TIME_KEY = 'urrow_catalog_cache_time';
+    var CACHE_TTL = 3 * 3600 * 1000; // 3 часа
 
+    // === ОЖИДАНИЕ LAMPA ===
     function waitForLampa(cb) {
-        if (window.Lampa && Lampa.Manifest && Lampa.Activity) cb();
+        if (window.Lampa && Lampa.Manifest && Lampa.Activity && Lampa.Storage) cb();
         else setTimeout(function () { waitForLampa(cb); }, 100);
     }
 
     waitForLampa(function () {
 
-        function gs(name, def) {
-            try { return Lampa.Storage.get(name, def); } catch (e) { return def; }
-        }
-        function ss(name, val) {
-            try { Lampa.Storage.set(name, val); } catch (e) {}
-        }
-        function getInstalled() { return gs(STORAGE_KEY, {}); }
-        function saveInstalled(d) { ss(STORAGE_KEY, d); }
-        function isInstalled(id) { return !!getInstalled()[id]; }
-        function getStatus(id) { return getInstalled()[id] || null; }
-
+        // === УТИЛИТЫ ===
         function notify(msg) {
             if (Lampa.Noty) Lampa.Noty.show(msg);
         }
@@ -36,358 +28,375 @@
             if (Lampa.Utils && Lampa.Utils.showReload) Lampa.Utils.showReload();
         }
 
-        /* ===== Fetch Catalog ===== */
-        function fetchCatalog(cb) {
+        // === CATALOG LOADER ===
+        function fetchCatalog(force, cb) {
             var now = Date.now();
-            var cacheTime = gs(STORAGE_CACHE_TIME, 0);
-            var cached = gs(STORAGE_CACHE, null);
-            if (cached && (now - cacheTime) < CACHE_TTL) { cb(cached); return; }
+            var cacheTime = parseInt(Lampa.Storage.get(CACHE_TIME_KEY, '0')) || 0;
+            var cached = Lampa.Storage.get(CACHE_KEY, null);
+
+            if (!force && cached && (now - cacheTime) < CACHE_TTL) {
+                cb(cached);
+                return;
+            }
+
             var req = new Lampa.Reguest();
             req.timeout = 15000;
             req.silent(CATALOG_URL, function (data) {
                 try {
                     if (typeof data === 'string') data = JSON.parse(data);
-                    ss(STORAGE_CACHE, data);
-                    ss(STORAGE_CACHE_TIME, Date.now());
+                    Lampa.Storage.set(CACHE_KEY, data);
+                    Lampa.Storage.set(CACHE_TIME_KEY, String(now));
                     cb(data);
-                } catch (e) { cb(cached || { plugins: [], version: '0.0.0' }); }
-            }, function () { cb(cached || { plugins: [], version: '0.0.0' }); });
+                } catch (e) {
+                    cb(cached || { version: '0.0.0', plugins: [] });
+                }
+            }, function () {
+                cb(cached || { version: '0.0.0', plugins: [] });
+            });
         }
 
-        /* ===== Plugin Actions ===== */
-        function installPlugin(plugin, renderCb) {
-            var installed = getInstalled();
-            installed[plugin.id] = {
-                id: plugin.id, name: plugin.name, url: plugin.url,
-                version: plugin.version, icon: plugin.icon,
-                enabled: true, installed_at: Date.now()
-            };
-            saveInstalled(installed);
-
+        // === ПРОВЕРКА ВЕРСИИ LAMPA ===
+        function getLampaVersion() {
             try {
-                var all = Lampa.Storage.get('extensions', []);
-                if (!Array.isArray(all)) all = [];
-                var exists = all.some(function (p) { return p.url === plugin.url; });
+                if (Lampa.Manifest && Lampa.Manifest.version) return parseInt(Lampa.Manifest.version) || 0;
+                var scripts = document.querySelectorAll('script[src*="app.min.js"]');
+                for (var i = 0; i < scripts.length; i++) {
+                    var m = scripts[i].src.match(/v=(\d+)/);
+                    if (m) return parseInt(m[1]);
+                }
+            } catch (e) {}
+            return 0;
+        }
+
+        function checkCompat(plugin) {
+            var current = getLampaVersion();
+            var min = parseInt(plugin.min_lampa_version) || 0;
+            var max = parseInt(plugin.max_lampa_version) || 0;
+            if (min && current && current < min) return 'outdated';
+            if (max && current && current > max) return 'unstable';
+            return 'ok';
+        }
+
+        // === EXTENSIONS STORAGE ===
+        function getExtensions() {
+            try {
+                var ext = Lampa.Storage.get('extensions', []);
+                return Array.isArray(ext) ? ext : [];
+            } catch (e) { return []; }
+        }
+
+        function isInstalled(scriptUrl) {
+            return getExtensions().some(function (e) { return e.url === scriptUrl; });
+        }
+
+        function installPlugin(plugin, cb) {
+            try {
+                var ext = getExtensions();
+                var exists = ext.some(function (e) { return e.url === plugin.script_url; });
                 if (!exists) {
-                    all.push({ url: plugin.url, name: plugin.name, author: plugin.author || 'Unknown', status: 1 });
-                    Lampa.Storage.set('extensions', all);
+                    ext.push({ url: plugin.script_url, name: plugin.name, author: plugin.author, enabled: 1, status: 1 });
+                    Lampa.Storage.set('extensions', ext);
                 }
 
+                // Загружаем скрипт
                 if (Lampa.Utils && Lampa.Utils.putScriptAsync) {
-                    Lampa.Utils.putScriptAsync([plugin.url], function () {
-                        notify(plugin.icon + ' ' + plugin.name + ' установлен и загружен');
-                    }, function (url) {
-                        notify('⚠️ Ошибка загрузки: ' + plugin.name);
-                    }, function (url) {
-                        notify(plugin.icon + ' ' + plugin.name + ' загружен');
+                    Lampa.Utils.putScriptAsync([plugin.script_url], function () {
+                        notify(plugin.name + ' установлен');
+                        if (cb) cb();
+                    }, function () {
+                        notify(plugin.name + ' добавлен (перезагрузите)');
+                        if (cb) cb();
                     });
+                } else {
+                    var s = document.createElement('script');
+                    s.src = plugin.script_url;
+                    document.body.appendChild(s);
+                    notify(plugin.name + ' установлен');
+                    if (cb) cb();
                 }
             } catch (e) {
-                notify(plugin.icon + ' ' + plugin.name + ' добавлен в список');
+                notify('Ошибка установки');
+                if (cb) cb();
             }
-
-            if (renderCb) setTimeout(renderCb, 300);
         }
 
-        function uninstallPlugin(plugin, renderCb) {
-            var installed = getInstalled();
-            delete installed[plugin.id];
-            saveInstalled(installed);
-
+        function uninstallPlugin(plugin, cb) {
             try {
-                var all = Lampa.Storage.get('extensions', []);
-                if (!Array.isArray(all)) all = [];
-                all = all.filter(function (p) { return p.url !== plugin.url; });
-                Lampa.Storage.set('extensions', all);
+                var ext = getExtensions();
+                ext = ext.filter(function (e) { return e.url !== plugin.script_url; });
+                Lampa.Storage.set('extensions', ext);
+                notify(plugin.name + ' удалён');
             } catch (e) {}
-
-            notify(plugin.icon + ' ' + plugin.name + ' удалён');
-            if (renderCb) setTimeout(renderCb, 300);
+            if (cb) cb();
         }
 
-        function togglePlugin(pluginId, renderCb) {
-            var installed = getInstalled();
-            if (installed[pluginId]) {
-                installed[pluginId].enabled = !installed[pluginId].enabled;
-                saveInstalled(installed);
-
-                try {
-                    var all = Lampa.Storage.get('extensions', []);
-                    if (!Array.isArray(all)) all = [];
-                    all.forEach(function (p) {
-                        if (p.url === installed[pluginId].url) {
-                            p.status = installed[pluginId].enabled ? 1 : 0;
-                        }
-                    });
-                    Lampa.Storage.set('extensions', all);
-                } catch (e) {}
-
-                notify(installed[pluginId].enabled ? 'Включён' : 'Выключен');
-            }
-            if (renderCb) setTimeout(renderCb, 300);
-        }
-
-        function checkUpdates(cb) {
-            fetchCatalog(function (catalog) {
-                var installed = getInstalled();
-                var updates = [];
-                catalog.plugins.forEach(function (p) {
-                    if (installed[p.id] && installed[p.id].version !== p.version) {
-                        installed[p.id].version = p.version;
-                        installed[p.id].url = p.url;
-                        updates.push(p);
-                    }
-                });
-                if (updates.length) saveInstalled(installed);
-                if (cb) cb(updates);
-            });
-        }
-
-        function cleanupBroken(cb) {
-            var installed = getInstalled();
-            var keys = Object.keys(installed);
-            if (!keys.length) { if (cb) cb([]); return; }
-            var broken = [], checked = 0;
-            keys.forEach(function (key) {
-                var req = new Lampa.Reguest();
-                req.timeout = 8000;
-                req.silent(installed[key].url, function (text) {
-                    if (typeof text !== 'string' || text.indexOf('Lampa.') === -1) broken.push(installed[key]);
-                    checkDone();
-                }, function () { broken.push(installed[key]); checkDone(); });
-                function checkDone() {
-                    checked++;
-                    if (checked === keys.length) {
-                        broken.forEach(function (p) { delete installed[p.id]; });
-                        if (broken.length) saveInstalled(installed);
-                        if (cb) cb(broken);
-                    }
-                }
-            });
-        }
-
-        /* ===== CSS ===== */
+        // === CSS ===
         function injectStyles() {
             if (document.getElementById('urrow-store-css')) return;
             var s = document.createElement('style');
             s.id = 'urrow-store-css';
             s.textContent = [
-                '.urrow-store{padding:1.5em;max-width:1200px;margin:0 auto}',
-                '.urrow-store__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5em;padding-bottom:1em;border-bottom:1px solid rgba(255,255,255,0.08)}',
-                '.urrow-store__title{font-size:1.6em;font-weight:700;color:#fff;display:flex;align-items:center;gap:0.5em}',
-                '.urrow-store__ver{font-size:0.6em;color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.06);padding:0.15em 0.5em;border-radius:0.25em}',
-                '.urrow-store__actions{display:flex;gap:0.5em}',
-                '.urrow-store__btn{padding:0.5em 1em;border-radius:0.5em;border:none;cursor:pointer;font-size:0.85em;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:0.4em;color:#fff}',
-                '.urrow-store__btn--p{background:linear-gradient(135deg,#667eea,#764ba2)}',
-                '.urrow-store__btn--s{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8)}',
-                '.urrow-store__stats{display:flex;gap:1em;margin-bottom:1.2em;flex-wrap:wrap}',
-                '.urrow-store__stat{font-size:0.8em;color:rgba(255,255,255,0.4)}',
-                '.urrow-store__stat b{color:rgba(255,255,255,0.7)}',
-                '.urrow-store__search{position:relative;margin-bottom:1em}',
-                '.urrow-store__search input{width:100%;padding:0.7em 1em 0.7em 2.5em;border-radius:0.5em;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#fff;font-size:0.85em;outline:none}',
-                '.urrow-store__search input:focus{border-color:rgba(102,126,234,0.5)}',
-                '.urrow-store__search-icon{position:absolute;left:0.8em;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.3)}',
-                '.urrow-store__cats{display:flex;gap:0.4em;margin-bottom:1.2em;flex-wrap:wrap}',
-                '.urrow-store__cat{padding:0.35em 0.8em;border-radius:1.2em;font-size:0.75em;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);background:transparent;transition:all .2s}',
-                '.urrow-store__cat--on{background:linear-gradient(135deg,#667eea,#764ba2);border-color:transparent;color:#fff}',
-                '.urrow-store__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(20em,1fr));gap:0.7em}',
-                '.urrow-store__card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:0.7em;padding:1em;transition:all .2s}',
-                '.urrow-store__card--in{border-color:rgba(102,126,234,0.25);background:rgba(102,126,234,0.05)}',
-                '.urrow-store__top{display:flex;align-items:flex-start;gap:0.7em}',
-                '.urrow-store__icon{font-size:2em;width:2.5em;height:2.5em;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.06);border-radius:0.6em;flex-shrink:0}',
-                '.urrow-store__info{flex:1;min-width:0}',
-                '.urrow-store__name{font-size:0.95em;font-weight:700;color:#fff;margin-bottom:0.1em}',
-                '.urrow-store__author{font-size:0.7em;color:rgba(255,255,255,0.4)}',
-                '.urrow-store__desc{font-size:0.75em;color:rgba(255,255,255,0.55);margin-top:0.4em;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
-                '.urrow-store__actions-row{display:flex;gap:0.35em;margin-top:0.7em}',
-                '.urrow-store__abtn{padding:0.35em 0.8em;border-radius:0.35em;border:none;cursor:pointer;font-size:0.75em;font-weight:600;transition:all .2s;color:#fff}',
-                '.urrow-store__abtn--i{background:linear-gradient(135deg,#667eea,#764ba2)}',
-                '.urrow-store__abtn--r{background:rgba(231,76,60,0.15);color:#e74c3c}',
-                '.urrow-store__abtn--t{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7)}',
-                '.urrow-store__abtn--u{background:rgba(241,196,15,0.15);color:#f1c40f}',
-                '.urrow-store__badge{display:inline-flex;align-items:center;gap:0.25em;font-size:0.7em;padding:0.15em 0.5em;border-radius:0.25em;font-weight:600}',
-                '.urrow-store__badge--ok{background:rgba(46,204,113,0.15);color:#2ecc71}',
-                '.urrow-store__badge--av{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)}',
-                '.urrow-store__badge--up{background:rgba(241,196,15,0.15);color:#f1c40f}',
-                '.urrow-store__sec{font-size:0.9em;font-weight:700;color:rgba(255,255,255,0.9);margin:1.2em 0 0.7em;display:flex;align-items:center;gap:0.5em}',
-                '.urrow-store__cnt{font-size:0.7em;background:rgba(255,255,255,0.1);padding:0.15em 0.5em;border-radius:0.6em;color:rgba(255,255,255,0.5)}',
-                '.urrow-store__tags{display:flex;gap:0.2em;flex-wrap:wrap}',
-                '.urrow-store__tag{font-size:0.65em;padding:0.1em 0.35em;border-radius:0.2em;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)}',
-                '.urrow-store__bottom{display:flex;align-items:center;justify-content:space-between;margin-top:0.7em}',
-                '.urrow-store__ver-tag{font-size:0.65em;color:rgba(255,255,255,0.3)}',
-                '.urrow-store__empty{text-align:center;padding:3em;color:rgba(255,255,255,0.3)}',
-                '.urrow-store__loading{text-align:center;padding:4em;color:rgba(255,255,255,0.4)}',
-                '.urrow-store__spin{display:inline-block;width:2em;height:2em;border:3px solid rgba(255,255,255,0.1);border-top-color:#667eea;border-radius:50%;animation:uspin .8s linear infinite;margin-bottom:0.8em}',
-                '@keyframes uspin{to{transform:rotate(360deg)}}'
+                '.us{padding:1.5em;max-width:1200px;margin:0 auto}',
+                '.us-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5em;padding-bottom:1em;border-bottom:1px solid rgba(255,255,255,0.08)}',
+                '.us-title{font-size:1.6em;font-weight:700;color:#fff;display:flex;align-items:center;gap:0.5em}',
+                '.us-ver{font-size:0.6em;color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.06);padding:0.15em 0.5em;border-radius:0.25em}',
+                '.us-btns{display:flex;gap:0.5em}',
+                '.us-b{padding:0.5em 1em;border-radius:0.5em;border:none;cursor:pointer;font-size:0.85em;font-weight:600;color:#fff;transition:all .2s}',
+                '.us-b--p{background:linear-gradient(135deg,#667eea,#764ba2)}',
+                '.us-b--s{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8)}',
+                '.us-stats{display:flex;gap:1em;margin-bottom:1.2em;flex-wrap:wrap}',
+                '.us-stat{font-size:0.8em;color:rgba(255,255,255,0.4)}',
+                '.us-stat b{color:rgba(255,255,255,0.7)}',
+                '.us-search{position:relative;margin-bottom:1em}',
+                '.us-search input{width:100%;padding:0.7em 1em 0.7em 2.5em;border-radius:0.5em;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#fff;font-size:0.85em;outline:none}',
+                '.us-search input:focus{border-color:rgba(102,126,234,0.5)}',
+                '.us-si{position:absolute;left:0.8em;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.3)}',
+                '.us-cats{display:flex;gap:0.4em;margin-bottom:1.2em;flex-wrap:wrap}',
+                '.us-cat{padding:0.35em 0.8em;border-radius:1.2em;font-size:0.75em;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);background:transparent;transition:all .2s}',
+                '.us-cat--on{background:linear-gradient(135deg,#667eea,#764ba2);border-color:transparent;color:#fff}',
+                '.us-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(20em,1fr));gap:0.7em}',
+                '.us-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:0.7em;padding:1em;transition:all .2s}',
+                '.us-card--in{border-color:rgba(102,126,234,0.25);background:rgba(102,126,234,0.05)}',
+                '.us-top{display:flex;align-items:flex-start;gap:0.7em}',
+                '.us-info{flex:1;min-width:0}',
+                '.us-name{font-size:0.95em;font-weight:700;color:#fff}',
+                '.us-author{font-size:0.7em;color:rgba(255,255,255,0.4)}',
+                '.us-desc{font-size:0.75em;color:rgba(255,255,255,0.55);margin-top:0.4em;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
+                '.us-row{display:flex;gap:0.35em;margin-top:0.7em;flex-wrap:wrap;align-items:center}',
+                '.us-ab{padding:0.35em 0.8em;border-radius:0.35em;border:none;cursor:pointer;font-size:0.75em;font-weight:600;color:#fff;transition:all .2s}',
+                '.us-ab--i{background:linear-gradient(135deg,#667eea,#764ba2)}',
+                '.us-ab--r{background:rgba(231,76,60,0.15);color:#e74c3c}',
+                '.us-ab--u{background:rgba(241,196,15,0.15);color:#f1c40f}',
+                '.us-badge{display:inline-flex;align-items:center;gap:0.25em;font-size:0.7em;padding:0.15em 0.5em;border-radius:0.25em;font-weight:600}',
+                '.us-badge--ok{background:rgba(46,204,113,0.15);color:#2ecc71}',
+                '.us-badge--br{background:rgba(231,76,60,0.15);color:#e74c3c}',
+                '.us-badge--old{background:rgba(241,196,15,0.15);color:#f1c40f}',
+                '.us-badge--dep{background:rgba(155,155,155,0.15);color:#999}',
+                '.us-stars{color:#f1c40f;font-size:0.75em}',
+                '.us-sec{font-size:0.9em;font-weight:700;color:rgba(255,255,255,0.9);margin:1.2em 0 0.7em;display:flex;align-items:center;gap:0.5em}',
+                '.us-cnt{font-size:0.7em;background:rgba(255,255,255,0.1);padding:0.15em 0.5em;border-radius:0.6em;color:rgba(255,255,255,0.5)}',
+                '.us-tags{display:flex;gap:0.2em;flex-wrap:wrap;margin-top:0.5em}',
+                '.us-tag{font-size:0.65em;padding:0.1em 0.35em;border-radius:0.2em;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)}',
+                '.us-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:0.5em}',
+                '.us-vtag{font-size:0.65em;color:rgba(255,255,255,0.3)}',
+                '.us-empty{text-align:center;padding:3em;color:rgba(255,255,255,0.3)}',
+                '.us-load{text-align:center;padding:4em;color:rgba(255,255,255,0.4)}',
+                '.us-spin{display:inline-block;width:2em;height:2em;border:3px solid rgba(255,255,255,0.1);border-top-color:#667eea;border-radius:50%;animation:uss .8s linear infinite;margin-bottom:0.8em}',
+                '@keyframes uss{to{transform:rotate(360deg)}}'
             ].join('');
             document.head.appendChild(s);
         }
 
-        /* ===== Build Store UI ===== */
+        // === RATING ===
+        function renderStars(rating) {
+            if (!rating || !rating.count) return '';
+            var full = Math.floor(rating.average);
+            var half = rating.average - full >= 0.5 ? 1 : 0;
+            var empty = 5 - full - half;
+            var s = '';
+            for (var i = 0; i < full; i++) s += '★';
+            for (var i = 0; i < half; i++) s += '½';
+            for (var i = 0; i < empty; i++) s += '☆';
+            return '<span class="us-stars">' + s + '</span> <span style="font-size:0.7em;color:rgba(255,255,255,0.4)">' + rating.average.toFixed(1) + ' (' + rating.count + ')</span>';
+        }
+
+        function renderBadge(plugin) {
+            var compat = checkCompat(plugin);
+            if (plugin.status === 'broken') return '<span class="us-badge us-badge--br">✗ Сломан</span>';
+            if (plugin.status === 'deprecated') return '<span class="us-badge us-badge--dep">Устарел</span>';
+            if (compat === 'outdated') return '<span class="us-badge us-badge--old">⚠ Требуется обновление Lampa</span>';
+            if (compat === 'unstable') return '<span class="us-badge us-badge--old">⚠ Может не работать</span>';
+            return '<span class="us-badge us-badge--ok">✓ Активен</span>';
+        }
+
+        function getCategoryName(c) {
+            return { interface:'🎨 Интерфейс', player:'▶️ Плеер', catalog:'📂 Каталог', torrent:'🎯 Торренты', misc:'🔧 Прочее' }[c] || c;
+        }
+
+        // === RENDER ===
         function renderStore(onReady) {
             var el = document.createElement('div');
-            el.className = 'urrow-store';
-            el.innerHTML = '<div class="urrow-store__loading"><div class="urrow-store__spin"></div><div>Загрузка...</div></div>';
+            el.className = 'us';
+            el.innerHTML = '<div class="us-load"><div class="us-spin"></div><div>Загрузка каталога...</div></div>';
             injectStyles();
 
-            fetchCatalog(function (catalog) {
-                var installed = getInstalled();
+            fetchCatalog(false, function (catalog) {
                 var all = catalog.plugins || [];
                 var cat = 'all';
                 var query = '';
+                var installed = getExtensions();
+
+                function isInst(p) {
+                    return installed.some(function (e) { return e.url === p.script_url; });
+                }
 
                 function filtered() {
                     return all.filter(function (p) {
                         var mc = cat === 'all' || p.category === cat;
-                        var ms = !query || p.name.toLowerCase().indexOf(query) !== -1 || p.description.toLowerCase().indexOf(query) !== -1 || (p.tags || []).join(' ').indexOf(query) !== -1;
+                        var ms = !query || p.name.toLowerCase().indexOf(query) !== -1 || p.description.toLowerCase().indexOf(query) !== -1 || p.author.toLowerCase().indexOf(query) !== -1;
                         return mc && ms;
                     });
                 }
+
                 function cats() {
                     var c = {};
-                    all.forEach(function (p) { c[p.category] = (c[p.category] || 0) + 1; });
+                    all.forEach(function (p) { if (p.status !== 'broken') c[p.category] = (c[p.category] || 0) + 1; });
                     return c;
                 }
-                function catName(c) {
-                    return { system:'⚙️ Системные', online:'🎬 Онлайн', content:'📂 Контент', iptv:'📺 IPTV', ui:'🎨 Интерфейс', utility:'🔧 Утилиты', ai:'🤖 AI', music:'🎵 Музыка', other:'📦 Прочее' }[c] || c;
-                }
+
                 function findP(id) { return all.find(function (p) { return p.id === id; }); }
 
                 function render() {
                     var f = filtered();
                     var cs = cats();
-                    var ic = Object.keys(installed).length;
+                    var ic = installed.length;
                     var h = '';
 
-                    h += '<div class="urrow-store__header">';
-                    h += '<div class="urrow-store__title">📦 URROW Store <span class="urrow-store__ver">v' + catalog.version + '</span></div>';
-                    h += '<div class="urrow-store__actions">';
-                    h += '<button class="selector urrow-store__btn urrow-store__btn--s" data-do="check">🔍 Проверить</button>';
-                    h += '<button class="selector urrow-store__btn urrow-store__btn--s" data-do="upall">🔄 Обновить всё</button>';
-                    h += '<button class="selector urrow-store__btn urrow-store__btn--p" data-do="refresh">↻ Обновить каталог</button>';
+                    // Шапка
+                    h += '<div class="us-hdr">';
+                    h += '<div class="us-title">📦 URROW Store <span class="us-ver">v' + catalog.version + '</span></div>';
+                    h += '<div class="us-btns">';
+                    h += '<button class="selector us-b us-b--s" data-do="check">🔍 Проверить</button>';
+                    h += '<button class="selector us-b us-b--s" data-do="upall">🔄 Обновить всё</button>';
+                    h += '<button class="selector us-b us-b--p" data-do="refresh">↻ Обновить каталог</button>';
                     h += '</div></div>';
 
-                    h += '<div class="urrow-store__stats">';
-                    h += '<div class="urrow-store__stat">Всего: <b>' + all.length + '</b></div>';
-                    h += '<div class="urrow-store__stat">Установлено: <b>' + ic + '</b></div>';
-                    h += '<div class="urrow-store__stat">Доступно: <b>' + (all.length - ic) + '</b></div>';
+                    // Статистика
+                    h += '<div class="us-stats">';
+                    h += '<div class="us-stat">Всего: <b>' + all.length + '</b></div>';
+                    h += '<div class="us-stat">Установлено: <b>' + ic + '</b></div>';
+                    h += '<div class="us-stat">Активных: <b>' + all.filter(function (p) { return p.status === 'active'; }).length + '</b></div>';
                     h += '</div>';
 
-                    h += '<div class="urrow-store__search"><span class="urrow-store__search-icon">🔍</span>';
-                    h += '<input class="selector" type="text" placeholder="Поиск плагинов..." data-do="search" value="' + query + '"></div>';
+                    // Поиск
+                    h += '<div class="us-search"><span class="us-si">🔍</span>';
+                    h += '<input class="selector" type="text" placeholder="Поиск по названию, описанию, автору..." data-do="search" value="' + query + '"></div>';
 
-                    h += '<div class="urrow-store__cats">';
-                    h += '<button class="selector urrow-store__cat ' + (cat === 'all' ? 'urrow-store__cat--on' : '') + '" data-cat="all">Все</button>';
+                    // Категории
+                    h += '<div class="us-cats">';
+                    h += '<button class="selector us-cat ' + (cat === 'all' ? 'us-cat--on' : '') + '" data-cat="all">Все (' + all.length + ')</button>';
                     Object.keys(cs).forEach(function (c) {
-                        h += '<button class="selector urrow-store__cat ' + (cat === c ? 'urrow-store__cat--on' : '') + '" data-cat="' + c + '">' + catName(c) + ' (' + cs[c] + ')</button>';
+                        h += '<button class="selector us-cat ' + (cat === c ? 'us-cat--on' : '') + '" data-cat="' + c + '">' + getCategoryName(c) + ' (' + cs[c] + ')</button>';
                     });
                     h += '</div>';
 
-                    var ip = [], ap = [];
-                    f.forEach(function (p) { (isInstalled(p.id) ? ip : ap).push(p); });
-
-                    if (ip.length) {
-                        h += '<div class="urrow-store__sec">Установленные <span class="urrow-store__cnt">' + ip.length + '</span></div>';
-                        h += '<div class="urrow-store__grid">';
-                        ip.forEach(function (p) { h += card(p, true); });
+                    // Карточки
+                    if (f.length) {
+                        h += '<div class="us-grid">';
+                        f.forEach(function (p) { h += card(p); });
                         h += '</div>';
-                    }
-                    if (ap.length) {
-                        h += '<div class="urrow-store__sec">Доступные <span class="urrow-store__cnt">' + ap.length + '</span></div>';
-                        h += '<div class="urrow-store__grid">';
-                        ap.forEach(function (p) { h += card(p, false); });
-                        h += '</div>';
-                    }
-                    if (!f.length) {
-                        h += '<div class="urrow-store__empty">🔍 Ничего не найдено</div>';
+                    } else {
+                        h += '<div class="us-empty">🔍 Ничего не найдено</div>';
                     }
 
                     el.innerHTML = h;
                     bind();
                 }
 
-                function card(p, inst) {
-                    var st = getStatus(p.id);
-                    var upd = st && st.version !== p.version;
-                    var cls = 'urrow-store__card' + (inst ? ' urrow-store__card--in' : '');
+                function card(p) {
+                    var inst = isInst(p);
+                    var cls = 'us-card' + (inst ? ' us-card--in' : '');
+                    var compat = checkCompat(p);
+                    var canInstall = p.status === 'active' && compat !== 'outdated';
 
                     var s = '<div class="' + cls + '" data-pid="' + p.id + '">';
-                    s += '<div class="urrow-store__top">';
-                    s += '<div class="urrow-store__icon">' + p.icon + '</div>';
-                    s += '<div class="urrow-store__info">';
-                    s += '<div class="urrow-store__name">' + p.name + '</div>';
-                    s += '<div class="urrow-store__author">by ' + p.author + '</div>';
+                    s += '<div class="us-top">';
+                    s += '<div class="us-info">';
+                    s += '<div class="us-name">' + p.name + '</div>';
+                    s += '<div class="us-author">by ' + p.author + '</div>';
                     s += '</div>';
+                    s += renderBadge(p);
+                    if (p.rating && p.rating.count) s += renderStars(p.rating);
+                    s += '</div>';
+                    s += '<div class="us-desc">' + p.description + '</div>';
+
+                    // Кнопки
+                    s += '<div class="us-row">';
                     if (inst) {
-                        s += upd ? '<span class="urrow-store__badge urrow-store__badge--up">⚡ Обновление</span>' : '<span class="urrow-store__badge urrow-store__badge--ok">✓ Установлен</span>';
-                    } else {
-                        s += '<span class="urrow-store__badge urrow-store__badge--av">Доступен</span>';
+                        s += '<button class="selector us-ab us-ab--r" data-do="uninstall" data-id="' + p.id + '">Удалить</button>';
+                    } else if (canInstall) {
+                        s += '<button class="selector us-ab us-ab--i" data-do="install" data-id="' + p.id + '">Установить</button>';
+                    } else if (compat === 'outdated') {
+                        s += '<button class="selector us-ab us-ab--u" data-do="install-force" data-id="' + p.id + '">Установить (форс)</button>';
                     }
                     s += '</div>';
-                    s += '<div class="urrow-store__desc">' + p.description + '</div>';
-                    s += '<div class="urrow-store__actions-row">';
-                    if (inst) {
-                        s += '<button class="selector urrow-store__abtn urrow-store__abtn--r" data-do="uninstall" data-id="' + p.id + '">Удалить</button>';
-                        s += '<button class="selector urrow-store__abtn urrow-store__abtn--t" data-do="toggle" data-id="' + p.id + '">' + (st && st.enabled ? 'Выкл' : 'Вкл') + '</button>';
-                        if (upd) s += '<button class="selector urrow-store__abtn urrow-store__abtn--u" data-do="update" data-id="' + p.id + '">Обновить</button>';
-                    } else {
-                        s += '<button class="selector urrow-store__abtn urrow-store__abtn--i" data-do="install" data-id="' + p.id + '">Установить</button>';
-                    }
+
+                    // Теги
+                    s += '<div class="us-bottom">';
+                    s += '<div class="us-tags"><span class="us-tag">' + getCategoryName(p.category) + '</span>';
+                    if (p.downloads) s += '<span class="us-tag">⬇ ' + p.downloads + '</span>';
                     s += '</div>';
-                    s += '<div class="urrow-store__bottom">';
-                    s += '<div class="urrow-store__tags">';
-                    (p.tags || []).forEach(function (t) { s += '<span class="urrow-store__tag">' + t + '</span>'; });
-                    s += '</div>';
-                    s += '<span class="urrow-store__ver-tag">v' + p.version + '</span>';
+                    s += '<span class="us-vtag">v' + p.version + '</span>';
                     s += '</div></div>';
                     return s;
                 }
 
                 function bind() {
+                    // Категории
                     el.querySelectorAll('[data-cat]').forEach(function (b) {
                         b.onclick = function () { cat = b.getAttribute('data-cat'); render(); };
                     });
 
+                    // Установка
                     el.querySelectorAll('[data-do="install"]').forEach(function (b) {
-                        b.onclick = function (e) { e.stopPropagation(); var p = findP(b.getAttribute('data-id')); if (p) installPlugin(p, render); };
-                    });
-                    el.querySelectorAll('[data-do="uninstall"]').forEach(function (b) {
-                        b.onclick = function (e) { e.stopPropagation(); var p = findP(b.getAttribute('data-id')); if (p) uninstallPlugin(p, render); };
-                    });
-                    el.querySelectorAll('[data-do="toggle"]').forEach(function (b) {
-                        b.onclick = function (e) { e.stopPropagation(); togglePlugin(b.getAttribute('data-id'), render); };
-                    });
-                    el.querySelectorAll('[data-do="update"]').forEach(function (b) {
-                        b.onclick = function (e) { e.stopPropagation(); var p = findP(b.getAttribute('data-id')); if (p) installPlugin(p, render); };
-                    });
-                    el.querySelectorAll('[data-do="refresh"]').forEach(function (b) {
-                        b.onclick = function () { ss(STORAGE_CACHE_TIME, 0); notify('🔄 Каталог обновлён'); render(); };
-                    });
-                    el.querySelectorAll('[data-do="upall"]').forEach(function (b) {
-                        b.onclick = function () {
-                            b.textContent = '⏳ Проверка...';
-                            checkUpdates(function (u) {
-                                notify(u.length ? '✅ Обновлено: ' + u.length : '✓ Все актуальны');
-                                b.textContent = '🔄 Обновить всё';
-                                render();
-                            });
+                        b.onclick = function (e) {
+                            e.stopPropagation();
+                            var p = findP(b.getAttribute('data-id'));
+                            if (p) installPlugin(p, render);
                         };
                     });
-                    el.querySelectorAll('[data-do="check"]').forEach(function (b) {
+
+                    // Форс-установка
+                    el.querySelectorAll('[data-do="install-force"]').forEach(function (b) {
+                        b.onclick = function (e) {
+                            e.stopPropagation();
+                            var p = findP(b.getAttribute('data-id'));
+                            if (p) installPlugin(p, render);
+                        };
+                    });
+
+                    // Удаление
+                    el.querySelectorAll('[data-do="uninstall"]').forEach(function (b) {
+                        b.onclick = function (e) {
+                            e.stopPropagation();
+                            var p = findP(b.getAttribute('data-id'));
+                            if (p) uninstallPlugin(p, render);
+                        };
+                    });
+
+                    // Обновить каталог
+                    el.querySelectorAll('[data-do="refresh"]').forEach(function (b) {
                         b.onclick = function () {
-                            b.textContent = '⏳ Проверка...';
-                            cleanupBroken(function (br) {
-                                notify(br.length ? '🗑 Нерабочих: ' + br.length : '✓ Все работают');
-                                b.textContent = '🔍 Проверить';
+                            fetchCatalog(true, function (newCatalog) {
+                                catalog = newCatalog;
+                                all = catalog.plugins || [];
+                                installed = getExtensions();
+                                notify('🔄 Каталог обновлён');
                                 render();
                             });
                         };
                     });
 
+                    // Проверка сломанных
+                    el.querySelectorAll('[data-do="check"]').forEach(function (b) {
+                        b.onclick = function () {
+                            var broken = all.filter(function (p) { return p.status === 'broken'; });
+                            var outdated = all.filter(function (p) { return checkCompat(p) === 'outdated'; });
+                            var msg = '✓ Все плагины в порядке';
+                            if (broken.length) msg = '✗ Сломанных: ' + broken.length;
+                            if (outdated.length) msg += ' | Требуют обновления Lampa: ' + outdated.length;
+                            notify(msg);
+                        };
+                    });
+
+                    // Поиск
                     var si = el.querySelector('[data-do="search"]');
                     if (si) {
                         var st;
-                        si.oninput = function () { clearTimeout(st); st = setTimeout(function () { query = si.value.toLowerCase().trim(); render(); }, 300); };
+                        si.oninput = function () {
+                            clearTimeout(st);
+                            st = setTimeout(function () { query = si.value.toLowerCase().trim(); render(); }, 200);
+                        };
                     }
 
                     if (onReady) onReady(el);
@@ -399,15 +408,13 @@
             return el;
         }
 
-        /* ===== Activity Component ===== */
+        // === ACTIVITY COMPONENT ===
         function UrrowStoreComponent(object) {
             var self = this;
             var el = null;
 
             self.create = function () {
-                el = renderStore(function () {
-                    self.start();
-                });
+                el = renderStore(function () { self.start(); });
             };
 
             self.render = function () { return el; };
@@ -419,23 +426,16 @@
                 if (first) Lampa.Controller.collectionFocus(first, el);
             };
 
-            self.back = function () {
-                Lampa.Activity.backward();
-            };
-
+            self.back = function () { Lampa.Activity.backward(); };
             self.destroy = function () { el = null; };
         }
 
-        /* ===== Open Store ===== */
+        // === ОТКРЫТИЕ МАГАЗИНА ===
         function openStore() {
-            Lampa.Activity.push({
-                url: 'urrowstore',
-                component: 'urrow_store',
-                title: 'URROW Store'
-            });
+            Lampa.Activity.push({ url: 'urrowstore', component: 'urrow_store', title: 'URROW Store' });
         }
 
-        /* ===== Header Button ===== */
+        // === КНОПКА В ШАПКЕ ===
         function addHeaderButton() {
             if (Lampa.Head && Lampa.Head.addIcon) {
                 Lampa.Head.addIcon(
@@ -445,8 +445,8 @@
             }
         }
 
-        /* ===== Register ===== */
-        Lampa.Manifest.plugin = { type: 'other', version: '1.0.0', name: 'URROW Store', description: 'Магазин плагинов', component: 'urrow_store' };
+        // === РЕГИСТРАЦИЯ ===
+        Lampa.Manifest.plugin = { type: 'other', version: '2.0.0', name: 'URROW Store', description: 'Динамический магазин плагинов', component: 'urrow_store' };
 
         if (Lampa.Component) Lampa.Component.add('urrow_store', UrrowStoreComponent);
 
@@ -461,17 +461,6 @@
             });
         }
 
-        if (Lampa.SettingsApi) {
-            Lampa.SettingsApi.addComponent({ component: 'urrow_store', name: 'URROW Store', icon: '📦' });
-            Lampa.SettingsApi.addParam({ component: 'urrow_store', param: { name: 'urrow_auto_update', type: 'trigger', default: true }, field: { name: 'Авто-обновление' } });
-        }
-
-        setTimeout(function () {
-            if (gs('urrow_auto_update', true)) {
-                checkUpdates(function (u) { if (u.length) notify('📦 Доступно обновлений: ' + u.length); });
-            }
-        }, 5000);
-
-        console.log('[URROW Store] loaded');
+        console.log('[URROW Store v2] loaded');
     });
 })();

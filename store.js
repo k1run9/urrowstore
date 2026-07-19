@@ -171,6 +171,7 @@
                 if (!sel.length) return;
                 Lampa.Controller.collectionSet(el);
                 Lampa.Controller.collectionFocus(sel[0], el);
+                Lampa.Controller.toggle('urrowstore');
             } catch (e) {}
         };
 

@@ -167,19 +167,23 @@
         self.start = function () {
             if (!el) return;
             try {
+                var sel = el.querySelectorAll('.selector');
+                if (!sel.length) return;
                 Lampa.Controller.collectionSet(el);
-                var first = el.querySelector('.selector');
-                if (first) Lampa.Controller.collectionFocus(first, el);
+                Lampa.Controller.collectionFocus(sel[0], el);
             } catch (e) {}
         };
 
-        self.back = function () { try { Lampa.Activity.backward(); } catch (e) {} };
+        self.back = function () {
+            try { Lampa.Activity.backward(); } catch (e) {}
+            return true;
+        };
         self.destroy = function () {
             try {
                 if (el) $(el).remove();
                 closeOverlay();
                 if (Lampa.Select && Lampa.Select.close) Lampa.Select.close();
-            } catch (e) { log('destroy error', e); }
+            } catch (e) {}
             el = null;
         };
 
@@ -200,19 +204,17 @@
             var h = '';
 
             h += '<div class="us-zone us-actions">';
-            h += '<button class="selector us-b us-b--p" data-do="refresh">↻ Каталог</button>';
-            h += '<button class="selector us-b us-b--s" data-do="check">✓ Проверить</button>';
-            h += '<span style="flex:1"></span>';
-            h += '<span style="font-size:0.75em;color:rgba(255,255,255,0.3)">' + total + ' плагинов · ' + ext.length + ' установлено</span>';
+            h += '<div class="selector us-b us-b--p" data-do="refresh">↻ Каталог</div>';
+            h += '<div class="selector us-b us-b--s" data-do="check">✓ Проверить</div>';
             h += '</div>';
 
             var cats = {};
             state.all.forEach(function (p) { if (p.enabled !== false) cats[p.category] = (cats[p.category] || 0) + 1; });
             var catNames = { system:'Система', content:'Контент', online:'Онлайн', ui:'Интерфейс', utility:'Утилиты', ai:'ИИ', music:'Музыка', other:'Прочее' };
             h += '<div class="us-zone us-tabs">';
-            h += '<button class="selector us-tab ' + (state.cat === 'all' ? 'us-tab--on' : '') + '" data-cat="all">Все</button>';
+            h += '<div class="selector us-tab ' + (state.cat === 'all' ? 'us-tab--on' : '') + '" data-cat="all">Все</div>';
             Object.keys(cats).forEach(function (c) {
-                h += '<button class="selector us-tab ' + (state.cat === c ? 'us-tab--on' : '') + '" data-cat="' + c + '">' + (catNames[c] || c) + '</button>';
+                h += '<div class="selector us-tab ' + (state.cat === c ? 'us-tab--on' : '') + '" data-cat="' + c + '">' + (catNames[c] || c) + '</div>';
             });
             h += '</div>';
 
@@ -368,38 +370,29 @@
         try {
             Lampa.Controller.add('urrowstore', {
                 toggle: function () {
-                    log('TOGGLE CALLED');
                     try {
-                        var r = (this.activity && this.activity.render) ? this.activity.render() : null;
-                        if (!r) r = document.querySelector('.us');
-                        log('toggle render:', r ? r.className : 'null', 'selectors:', r ? r.querySelectorAll('.selector').length : 0);
+                        var r = document.querySelector('.us');
                         if (r) {
                             Lampa.Controller.collectionSet(r);
                             var f = r.querySelector('.selector');
                             if (f) Lampa.Controller.collectionFocus(f, r);
                         }
-                        log('toggle done, focused:', document.querySelector('.selector.focus') ? 'yes' : 'no');
-                    } catch (e) { log('toggle error', e); }
+                    } catch (e) {}
                 },
                 move: function (d) {
-                    log('MOVE CALLED, direction:', d);
-                    try {
-                        var before = document.querySelectorAll('.selector.focus').length;
-                        Lampa.Controller.move(d);
-                        var after = document.querySelectorAll('.selector.focus').length;
-                        log('move done, focus before:', before, 'after:', after);
-                    } catch (e) { log('move error', e); }
+                    try { Lampa.Controller.move(d); } catch (e) {}
                 },
                 enter: function () {
-                    var f = document.querySelector('.selector.focus');
-                    log('ENTER CALLED, focused:', f ? f.textContent.trim().substring(0, 30) : 'none');
                     try {
+                        var f = document.querySelector('.selector.focus');
                         if (f) $(f).trigger('hover:enter');
-                    } catch (e) { log('enter error', e); }
+                    } catch (e) {}
                 },
-                back: function () { try { Lampa.Activity.backward(); } catch (e) {} }
+                back: function () {
+                    try { Lampa.Activity.backward(); } catch (e) {}
+                }
             });
-        } catch (e) { log('Controller.add error', e); }
+        } catch (e) {}
 
         try {
             var headSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>';
@@ -430,25 +423,6 @@
 
         checkUpdate();
         log('ready');
-
-        // === DIAGNOSTICS (temporary — remove after debugging) ===
-        log('--- DIAGNOSTICS START ---');
-        log('Lampa.Controller type:', typeof Lampa.Controller);
-        log('Lampa.Controller keys:', Object.keys(Lampa.Controller));
-        try { log('collectionSet type:', typeof Lampa.Controller.collectionSet); } catch (e) {}
-        try { log('move type:', typeof Lampa.Controller.move); } catch (e) {}
-        try { log('toggle type:', typeof Lampa.Controller.toggle); } catch (e) {}
-        try { log('own type:', typeof Lampa.Controller.own); } catch (e) {}
-        try { log('type method:', typeof Lampa.Controller.type); } catch (e) {}
-        try { log('active method:', typeof Lampa.Controller.active); } catch (e) {}
-        try {
-            var menuSelectors = document.querySelectorAll('.menu .selector');
-            log('menu selectors in DOM:', menuSelectors.length);
-            for (var i = 0; i < Math.min(menuSelectors.length, 5); i++) {
-                log('  menu item', i, ':', menuSelectors[i].textContent.trim().substring(0, 30));
-            }
-        } catch (e) {}
-        log('--- DIAGNOSTICS END ---');
     }
 
     if (window.appready) init();

@@ -3,7 +3,7 @@
     'use strict';
     if (window.__urrow_store) return;
     window.__urrow_store = true;
-    console.log('[urrowstore] loaded');
+    log('loaded');
 
     var CATALOG_URL = 'https://k1run9.github.io/urrowstore/plugins.json';
     var VERSION_URL = 'https://k1run9.github.io/urrowstore/version.json';
@@ -14,6 +14,16 @@
 
     function notify(msg) { try { Lampa.Noty.show(msg); } catch (e) {} }
     function getVer() { try { return parseInt(Lampa.Manifest.version) || 0; } catch (e) { return 0; } }
+    function log() { try { console.log.apply(console, ['[urrowstore]'].concat(Array.prototype.slice.call(arguments))); } catch (e) {} }
+    function logErr() { try { console.error.apply(console, ['[urrowstore]'].concat(Array.prototype.slice.call(arguments))); } catch (e) {} }
+
+    function findContainer(selectors) {
+        for (var i = 0; i < selectors.length; i++) {
+            var el = $(selectors[i]);
+            if (el.length) return el.eq(0);
+        }
+        return null;
+    }
 
     // === AUTO-UPDATE ===
     function checkUpdate() {
@@ -50,7 +60,7 @@
                     cb(d);
                 } catch (e) {
                     var raw = typeof d === 'string' ? d : '';
-                    console.error('[urrowstore] JSON parse error:', e.message, '| response (first 200):', raw.substring(0, 200));
+                    logErr('JSON parse error:', e.message, '| response (first 200):', raw.substring(0, 200));
                     cb(cached || { version: '0', plugins: [] });
                 }
             }, function () { cb(cached || { version: '0', plugins: [] }); });
@@ -75,8 +85,8 @@
             var script = document.createElement('script');
             script.src = url + (url.indexOf('?') > -1 ? '&' : '?') + '_t=' + Date.now();
             script.setAttribute('data-urrow-plugin', url);
-            script.onload = function () { console.log('[urrowstore] Активирован:', name); if (cb) cb(true); };
-            script.onerror = function () { console.error('[urrowstore] Ошибка:', name); if (cb) cb(false); };
+            script.onload = function () { log('Активирован:', name); if (cb) cb(true); };
+            script.onerror = function () { logErr('Ошибка загрузки:', name); if (cb) cb(false); };
             document.body.appendChild(script);
         } catch (e) { if (cb) cb(false); }
     }
@@ -164,7 +174,14 @@
         };
 
         self.back = function () { try { Lampa.Activity.backward(); } catch (e) {} };
-        self.destroy = function () { el = null; };
+        self.destroy = function () {
+            try {
+                if (el) $(el).remove();
+                closeOverlay();
+                if (Lampa.Select && Lampa.Select.close) Lampa.Select.close();
+            } catch (e) { log('destroy error', e); }
+            el = null;
+        };
 
         self.filtered = function () {
             return state.all.filter(function (p) {
@@ -291,6 +308,16 @@
         Lampa.Activity.push({ url: 'urrowstore', component: 'urrowstore_main', title: 'URROW Store' });
     }
 
+    // === OVERLAY ===
+    function showOverlay(html) {
+        closeOverlay();
+        var overlay = $('<div class="urrow-overlay" style="position:fixed;top:0;left:0;' +
+            'width:100%;height:100%;z-index:9999;background:rgba(0,0,0,0.9);">' + html + '</div>');
+        $('body').append(overlay);
+        return overlay;
+    }
+    function closeOverlay() { $('.urrow-overlay').remove(); }
+
     // === CSS ===
     function injectCSS() {
         if (document.getElementById('urrow-store-css')) return;
@@ -334,7 +361,7 @@
 
     // === INIT ===
     function init() {
-        console.log('[urrowstore] init v=' + getVer());
+        log('init v=' + getVer());
 
         try { Lampa.Component.add('urrowstore_main', UrrowStoreComp); } catch (e) {}
 
@@ -356,13 +383,12 @@
         } catch (e) {}
 
         try {
-            if (Lampa.Head && Lampa.Head.render) {
-                var headSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>';
-                var headBtn = $('<div class="head__action selector" title="URROW Store">' + headSvg + '</div>');
-                headBtn.on('hover:enter', openStore);
-                var headActions = Lampa.Head.render().find('.head__actions');
-                if (headActions.length) headActions.eq(0).prepend(headBtn);
-            }
+            var headSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>';
+            var headBtn = $('<div class="head__action selector" title="URROW Store">' + headSvg + '</div>');
+            headBtn.on('hover:enter', openStore);
+            var headActions = findContainer(['.head__actions', '.head .actions', '.head__action']);
+            if (headActions) headActions.prepend(headBtn);
+            else log('head container not found');
         } catch (e) {}
 
         try {
@@ -371,7 +397,9 @@
                 '<div class="menu__ico">' + menuSvg + '</div>' +
                 '<div class="menu__text">URROW Store</div></li>');
             menuItem.on('hover:enter', openStore);
-            $('.menu .menu__list').eq(0).append(menuItem);
+            var menuList = findContainer(['.menu .menu__list', '.menu__list', '.menu-list']);
+            if (menuList) menuList.append(menuItem);
+            else log('menu container not found');
         } catch (e) {}
 
         try {
@@ -382,7 +410,7 @@
         } catch (e) {}
 
         checkUpdate();
-        console.log('[urrowstore] ready');
+        log('ready');
     }
 
     if (window.appready) init();

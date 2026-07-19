@@ -368,11 +368,18 @@
         self.render = function () { return el; };
 
         self.start = function () {
+            if (!el) return;
             try {
+                // Устанавливаем коллекцию для навигации
                 Lampa.Controller.collectionSet(el);
+                // Ставим фокус на первый элемент
                 var target = (lastFocused && el.contains(lastFocused)) ? lastFocused : el.querySelector('.selector');
-                if (target) Lampa.Controller.collectionFocus(target, el);
+                if (target) {
+                    Lampa.Controller.collectionFocus(target, el);
+                }
+                // Активируем контроллер
                 Lampa.Controller.toggle('urrowstore');
+                console.log('[urrowstore] start: controller activated');
             } catch (e) {
                 console.error('[urrowstore] start error:', e);
             }
@@ -594,6 +601,10 @@
                     toggle: function () {
                         try {
                             var render = (this.activity && this.activity.render) ? this.activity.render() : null;
+                            if (!render) {
+                                var el2 = document.querySelector('.us');
+                                if (el2) render = el2;
+                            }
                             if (render) {
                                 Lampa.Controller.collectionSet(render);
                                 var first = render.querySelector('.selector');
@@ -609,7 +620,10 @@
                     enter: function () {
                         try {
                             var focused = document.querySelector('.selector.focus, .selector.hover');
-                            if (focused) focused.click();
+                            if (focused) {
+                                var evt = new MouseEvent('click', { bubbles: true });
+                                focused.dispatchEvent(evt);
+                            }
                         } catch (e) {}
                     },
                     back: function () {

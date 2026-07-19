@@ -15,6 +15,19 @@
         else setTimeout(function () { waitForLampa(cb); }, 100);
     }
 
+    // Ждём готовности DOM шапки перед добавлением иконок
+    function waitForHeaderReady(cb, attempts) {
+        attempts = attempts || 0;
+        if (attempts > 50) {
+            console.warn('[urrowstore] Шапка не найдена после 50 попыток, кнопка не добавлена');
+            return;
+        }
+        var headExists = typeof window.$ !== 'undefined' && $('.head').length > 0;
+        var actionsExist = headExists && ($('.head__actions').length > 0 || $('.head__menu').length > 0 || $('.head__icon').length > 0);
+        if (headExists && actionsExist) cb();
+        else setTimeout(function () { waitForHeaderReady(cb, attempts + 1); }, 100);
+    }
+
     waitForLampa(function () {
 
         function notify(msg) { if (Lampa.Noty) Lampa.Noty.show(msg); }
@@ -470,26 +483,47 @@
 
         // === HEADER ===
         function addHeaderButton() {
-            if (Lampa.Head && Lampa.Head.addIcon) {
+            // Защита от дублирования
+            if ($('.urrowstore-header-btn').length) return;
+
+            try {
+                if (!Lampa.Head || typeof Lampa.Head.addIcon !== 'function') {
+                    console.warn('[urrowstore] Lampa.Head.addIcon недоступен');
+                    return;
+                }
                 Lampa.Head.addIcon(
-                    '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+                    '<svg class="urrowstore-header-btn" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
                     function () { openStore(); }
                 );
+            } catch (e) {
+                console.error('[urrowstore] Ошибка addHeaderButton:', e);
             }
         }
 
         // === REGISTER ===
-        Lampa.Manifest.plugin = { type: 'other', version: '2.1.0', name: 'URROW Store', description: 'Динамический магазин плагинов', component: 'urrow_store' };
+        Lampa.Manifest.plugin = { type: 'other', version: '2.2.0', name: 'URROW Store', description: 'Динамический магазин плагинов', component: 'urrow_store' };
         if (Lampa.Component) Lampa.Component.add('urrow_store', UrrowStoreComponent);
-        addHeaderButton();
+
+        // Ждём готовности DOM шапки перед добавлением иконки
+        waitForHeaderReady(function () {
+            try { addHeaderButton(); }
+            catch (e) { console.error('[urrowstore] addHeaderButton failed:', e); }
+        });
+
         if (Lampa.Menu && Lampa.Menu.addButton) {
-            Lampa.Menu.addButton({
-                name: 'URROW Store', description: 'Магазин плагинов',
-                icon: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-                onSelect: openStore
-            });
+            try {
+                Lampa.Menu.addButton({
+                    name: 'URROW Store', description: 'Магазин плагинов',
+                    icon: '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+                    onSelect: openStore
+                });
+            } catch (e) {
+                console.error('[urrowstore] Menu.addButton error:', e);
+            }
         }
 
-        console.log('[URROW Store v2.1] loaded');
+        // Логирование версии для диагностики
+        var _ver = getLampaVersion();
+        console.log('[urrowstore] Lampa v=' + _ver + ', store v2.2.0 loaded');
     });
 })();

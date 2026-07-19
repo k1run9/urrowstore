@@ -157,12 +157,7 @@
         self.start = function () {
             if (!el) return;
             try {
-                var zones = el.querySelectorAll('.us-zone');
-                if (zones.length) {
-                    Lampa.Controller.collectionSet(Array.prototype.slice.call(zones));
-                } else {
-                    Lampa.Controller.collectionSet(el);
-                }
+                Lampa.Controller.collectionSet(el);
                 var first = el.querySelector('.selector');
                 if (first) Lampa.Controller.collectionFocus(first, el);
             } catch (e) {}
@@ -350,42 +345,13 @@
                         var r = (this.activity && this.activity.render) ? this.activity.render() : null;
                         if (!r) r = document.querySelector('.us');
                         if (r) {
-                            var zones = r.querySelectorAll('.us-zone');
-                            if (zones.length) {
-                                Lampa.Controller.collectionSet(Array.prototype.slice.call(zones));
-                            } else {
-                                Lampa.Controller.collectionSet(r);
-                            }
+                            Lampa.Controller.collectionSet(r);
                             var f = r.querySelector('.selector');
                             if (f) Lampa.Controller.collectionFocus(f, r);
                         }
                     } catch (e) {}
                 },
-                move: function (d) {
-                    try {
-                        if (Lampa.Controller.active() !== 'urrowstore') return;
-                        Lampa.Controller.move(d);
-                    } catch (e) {}
-                },
-                enter: function () {
-                    try {
-                        if (Lampa.Controller.active() !== 'urrowstore') return;
-                        var f = document.querySelector('.selector.focus');
-                        if (f) {
-                            if (typeof $ !== 'undefined') {
-                                $(f).trigger('hover:enter');
-                            } else {
-                                f.dispatchEvent(new CustomEvent('hover:enter'));
-                            }
-                        }
-                    } catch (e) {}
-                },
-                back: function () {
-                    try {
-                        if (Lampa.Controller.active() !== 'urrowstore') return;
-                        Lampa.Activity.backward();
-                    } catch (e) {}
-                }
+                back: function () { try { Lampa.Activity.backward(); } catch (e) {} }
             });
         } catch (e) {}
 
@@ -400,19 +366,12 @@
         } catch (e) {}
 
         try {
-            if (Lampa.Menu && Lampa.Menu.render) {
-                var menuSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>';
-                var menuBtn = $('<li class="menu__item selector"><div class="menu__ico">' + menuSvg + '</div><div class="menu__text">URROW Store</div></li>');
-                menuBtn.on('hover:enter', openStore);
-                var menuList = Lampa.Menu.render().find('.menu__list');
-                if (menuList.length) {
-                    menuList.eq(0).append(menuBtn);
-                    try {
-                        var menuSelectors = Lampa.Menu.render().find('.selector');
-                        if (menuSelectors.length) Lampa.Controller.collectionSet(menuSelectors);
-                    } catch (e) {}
-                }
-            }
+            var menuSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>';
+            var menuItem = $('<li data-action="urrowstore" class="menu__item selector">' +
+                '<div class="menu__ico">' + menuSvg + '</div>' +
+                '<div class="menu__text">URROW Store</div></li>');
+            menuItem.on('hover:enter', openStore);
+            $('.menu .menu__list').eq(0).append(menuItem);
         } catch (e) {}
 
         try {

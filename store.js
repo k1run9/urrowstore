@@ -574,12 +574,52 @@
     function init() {
         console.log('[urrowstore] init, Lampa v=' + getLampaVersion());
 
+        // Регистрация плагина
+        try {
+            Lampa.Manifest.plugin = { type: 'other', version: '2.6.0', name: 'URROW Store', description: 'Динамический магазин плагинов', component: 'urrowstore_main' };
+        } catch (e) {}
+
         // Регистрация компонента
         try {
             Lampa.Component.add('urrowstore_main', UrrowStoreComponent);
             console.log('[urrowstore] Component.add выполнен');
         } catch (e) {
             console.error('[urrowstore] Component.add error:', e);
+        }
+
+        // Регистрация контроллера для пульта
+        try {
+            if (Lampa.Controller && typeof Lampa.Controller.add === 'function') {
+                Lampa.Controller.add('urrowstore', {
+                    toggle: function () {
+                        try {
+                            var render = (this.activity && this.activity.render) ? this.activity.render() : null;
+                            if (render) {
+                                Lampa.Controller.collectionSet(render);
+                                var first = render.querySelector('.selector');
+                                if (first) Lampa.Controller.collectionFocus(first, render);
+                            }
+                        } catch (e) {
+                            console.error('[urrowstore] Controller.toggle error:', e);
+                        }
+                    },
+                    move: function (direction) {
+                        try { Lampa.Controller.move(direction); } catch (e) {}
+                    },
+                    enter: function () {
+                        try {
+                            var focused = document.querySelector('.selector.focus, .selector.hover');
+                            if (focused) focused.click();
+                        } catch (e) {}
+                    },
+                    back: function () {
+                        try { Lampa.Activity.backward(); } catch (e) {}
+                    }
+                });
+                console.log('[urrowstore] Controller.add выполнен');
+            }
+        } catch (e) {
+            console.error('[urrowstore] Controller.add error:', e);
         }
 
         // Иконка в шапку (рядом с поиском)

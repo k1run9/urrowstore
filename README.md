@@ -9,7 +9,7 @@
 3. Вставьте ссылку:
 
 ```
-https://urrow.github.io/urrowstore/store.js
+https://k1run9.github.io/urrowstore/store.js
 ```
 
 4. Подтвердите установку и **перезапустите** Lampa

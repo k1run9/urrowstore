@@ -529,6 +529,25 @@
             return renderStore();
         }
 
+        /* ===== Header Button ===== */
+        function openStore() {
+            Lampa.Activity.push({
+                url: 'urrowstore',
+                component: 'urrow_store',
+                title: 'URROW Store'
+            });
+        }
+
+        function addHeaderButton() {
+            if (Lampa.Head && Lampa.Head.addIcon) {
+                var icon = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
+                Lampa.Head.addIcon(icon, function () {
+                    openStore();
+                });
+            }
+        }
+
         /* ===== Registration ===== */
         Lampa.Manifest.plugin = {
             type: 'other',
@@ -542,18 +561,14 @@
             Lampa.Component.add('urrow_store', createStoreActivity);
         }
 
+        addHeaderButton();
+
         if (Lampa.Menu && Lampa.Menu.addButton) {
             Lampa.Menu.addButton({
                 name: 'URROW Store',
                 description: 'Магазин плагинов',
                 icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="18" height="18" rx="4" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-                onSelect: function () {
-                    Lampa.Activity.push({
-                        url: 'urrowstore',
-                        component: 'urrow_store',
-                        title: 'URROW Store'
-                    });
-                }
+                onSelect: openStore
             });
         }
 

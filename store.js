@@ -227,7 +227,7 @@
         }
 
         // === MAIN RENDER ===
-        function renderStore(onReady) {
+        function renderStore(onReady, componentRef) {
             var el = document.createElement('div');
             el.className = 'us';
             el.innerHTML = '<div class="us-load"><div class="us-spin"></div><div>Загрузка каталога...</div></div>';
@@ -358,6 +358,7 @@
                         });
                         card.addEventListener('hover:focus', function () {
                             lastFocused = card;
+                            if (componentRef && componentRef.updateFocus) componentRef.updateFocus(card);
                         });
                     });
 
@@ -436,19 +437,28 @@
                     }
 
                     // Восстанавливаем фокус после re-render
-                    if (lastFocused) {
-                        var pid = lastFocused.getAttribute('data-pid');
-                        if (pid) {
-                            var newCard = el.querySelector('[data-pid="' + pid + '"]');
-                            if (newCard) {
-                                Lampa.Controller.collectionSet(el);
-                                Lampa.Controller.collectionFocus(newCard, el);
-                                return;
-                            }
-                        }
-                    }
+                    setupController();
+                }
 
-                    if (onReady) onReady(el);
+                function setupController() {
+                    try {
+                        Lampa.Controller.collectionSet(el);
+                        var target = null;
+                        if (lastFocused && el.contains(lastFocused)) {
+                            target = lastFocused;
+                        } else {
+                            target = el.querySelector('.selector');
+                        }
+                        if (target) {
+                            Lampa.Controller.collectionFocus(target, el);
+                            lastFocused = target;
+                        }
+                    } catch (e) {
+                        console.error('[urrowstore] setupController error:', e);
+                    }
+                }
+
+                if (onReady) onReady(el);
                 }
 
                 render();
@@ -461,19 +471,90 @@
         function UrrowStoreComponent(object) {
             var self = this;
             var el = null;
+            var lastFocused = null;
 
             self.create = function () {
-                el = renderStore(function () { self.start(); });
+                el = renderStore(function () { self.start(); }, self);
             };
+
             self.render = function () { return el; };
+
             self.start = function () {
                 if (!el) return;
-                Lampa.Controller.collectionSet(el);
-                var first = el.querySelector('.selector');
-                if (first) Lampa.Controller.collectionFocus(first, el);
+                try {
+                    Lampa.Controller.collectionSet(el);
+                    var target = lastFocused || el.querySelector('.selector');
+                    if (target && el.contains(target)) {
+                        Lampa.Controller.collectionFocus(target, el);
+                    } else {
+                        var first = el.querySelector('.selector');
+                        if (first) {
+                            Lampa.Controller.collectionFocus(first, el);
+                            lastFocused = first;
+                        }
+                    }
+                    Lampa.Controller.toggle('urrowstore');
+                } catch (e) {
+                    console.error('[urrowstore] Controller.start error:', e);
+                }
             };
-            self.back = function () { Lampa.Activity.backward(); };
-            self.destroy = function () { el = null; };
+
+            self.back = function () {
+                try { Lampa.Activity.backward(); }
+                catch (e) { console.error('[urrowstore] back error:', e); }
+            };
+
+            self.destroy = function () {
+                el = null;
+                lastFocused = null;
+            };
+
+            // Сохраняем фокус при навигации
+            self.updateFocus = function (target) {
+                if (target) lastFocused = target;
+            };
+        }
+
+        // === РЕГИСТРАЦИЯ КОНТРОЛЛЕРА ===
+        function registerController() {
+            if (!Lampa.Controller || typeof Lampa.Controller.add !== 'function') return;
+
+            try {
+                Lampa.Controller.add('urrowstore', {
+                    toggle: function () {
+                        try {
+                            var render = this.activity && this.activity.render ? this.activity.render() : null;
+                            if (render) {
+                                Lampa.Controller.collectionSet(render);
+                                var first = render.querySelector('.selector');
+                                if (first) Lampa.Controller.collectionFocus(first, render);
+                            }
+                        } catch (e) {
+                            console.error('[urrowstore] Controller.toggle error:', e);
+                        }
+                    },
+                    move: function (direction) {
+                        try { Lampa.Controller.move(direction); }
+                        catch (e) { console.error('[urrowstore] Controller.move error:', e); }
+                    },
+                    enter: function () {
+                        try {
+                            var focused = document.querySelector('.selector.focus, .selector.hover, .selector:focus');
+                            if (focused) focused.click();
+                        } catch (e) {
+                            console.error('[urrowstore] Controller.enter error:', e);
+                        }
+                    },
+                    back: function () {
+                        try { Lampa.Activity.backward(); }
+                        catch (e) { console.error('[urrowstore] Controller.back error:', e); }
+                    }
+                });
+
+                console.log('[urrowstore] Controller "urrowstore" зарегистрирован');
+            } catch (e) {
+                console.error('[urrowstore] Controller.add error:', e);
+            }
         }
 
         // === OPEN ===
@@ -501,8 +582,9 @@
         }
 
         // === REGISTER ===
-        Lampa.Manifest.plugin = { type: 'other', version: '2.2.0', name: 'URROW Store', description: 'Динамический магазин плагинов', component: 'urrow_store' };
+        Lampa.Manifest.plugin = { type: 'other', version: '2.3.0', name: 'URROW Store', description: 'Динамический магазин плагинов', component: 'urrow_store' };
         if (Lampa.Component) Lampa.Component.add('urrow_store', UrrowStoreComponent);
+        registerController();
 
         // Ждём готовности DOM шапки перед добавлением иконки
         waitForHeaderReady(function () {
@@ -524,6 +606,6 @@
 
         // Логирование версии для диагностики
         var _ver = getLampaVersion();
-        console.log('[urrowstore] Lampa v=' + _ver + ', store v2.2.0 loaded');
+        console.log('[urrowstore] Lampa v=' + _ver + ', store v2.3.0 loaded');
     });
 })();

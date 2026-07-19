@@ -1,4 +1,4 @@
-/* URROW Store v3.0.1 — Упрощённый магазин для Lampa */
+/* URROW Store v3.1 — Магазин плагинов для Lampa */
 (function () {
     'use strict';
     if (window.__urrow_store) return;
@@ -7,16 +7,14 @@
 
     var CATALOG_URL = 'https://k1run9.github.io/urrowstore/catalog.json';
     var VERSION_URL = 'https://k1run9.github.io/urrowstore/version.json';
-    var STORE_URL = 'https://k1run9.github.io/urrowstore/store.js';
     var CACHE_KEY = 'urrow_catalog_cache';
     var CACHE_TIME_KEY = 'urrow_catalog_cache_time';
     var CACHE_TTL = 3 * 3600 * 1000;
-    var PER_PAGE = 20;
 
     function notify(msg) { try { Lampa.Noty.show(msg); } catch (e) {} }
     function getVer() { try { return parseInt(Lampa.Manifest.version) || 0; } catch (e) { return 0; } }
 
-    // === AUTO-UPDATE (Вариант А: уведомление вместо hot-reload) ===
+    // === AUTO-UPDATE ===
     function checkUpdate() {
         try {
             var cur = Lampa.Storage.get('urrowstore_ver', '0');
@@ -28,8 +26,7 @@
                     clearTimeout(t);
                     if (d.version && d.version !== cur) {
                         Lampa.Storage.set('urrowstore_ver', d.version);
-                        notify('📦 Доступна новая версия магазина (' + d.version + '). Перезапустите Lampa.');
-                        console.log('[urrowstore] Новая версия:', d.version, '(текущая:', cur + ')');
+                        notify('📦 Обновите Lampa для применения версии ' + d.version);
                     }
                 }).catch(function () {});
         } catch (e) {}
@@ -66,63 +63,199 @@
         try { if (!Lampa.Storage.get('agree_installation', false)) Lampa.Storage.set('agree_installation', true); } catch (e) {}
     }
 
-    // Активация скрипта плагина в текущей сессии (вставка <script> в DOM)
     function activatePluginScript(url, name, cb) {
         try {
-            var existing = document.querySelector('script[data-urrow-plugin="' + url + '"]');
-            if (existing) { if (cb) cb(true); return; }
+            if (document.querySelector('script[data-urrow-plugin="' + url + '"]')) { if (cb) cb(true); return; }
             if (typeof Lampa === 'undefined') { if (cb) cb(false); return; }
-
             var script = document.createElement('script');
             script.src = url + (url.indexOf('?') > -1 ? '&' : '?') + '_t=' + Date.now();
             script.setAttribute('data-urrow-plugin', url);
-            script.onload = function () {
-                console.log('[urrowstore] Плагин активирован:', name);
-                if (cb) cb(true);
-            };
-            script.onerror = function () {
-                console.error('[urrowstore] Ошибка загрузки:', name, url);
-                if (cb) cb(false);
-            };
+            script.onload = function () { console.log('[urrowstore] Активирован:', name); if (cb) cb(true); };
+            script.onerror = function () { console.error('[urrowstore] Ошибка:', name); if (cb) cb(false); };
             document.body.appendChild(script);
-        } catch (e) {
-            console.error('[urrowstore] activatePluginScript error:', e);
-            if (cb) cb(false);
-        }
+        } catch (e) { if (cb) cb(false); }
     }
 
     function installPlugin(p, cb) {
         ensureAgreement();
         try {
             var ext = getExt();
-            var already = ext.some(function (e) { return e.url === p.script_url; });
-            if (!already) {
+            if (!ext.some(function (e) { return e.url === p.script_url; })) {
                 ext.push({ url: p.script_url, name: p.name, author: p.author, status: 1 });
                 Lampa.Storage.set('plugins', ext);
             }
-
             activatePluginScript(p.script_url, p.name, function (ok) {
-                if (ok) {
-                    notify(p.name + ' установлен и активирован ✓');
-                } else {
-                    notify(p.name + ' добавлен (перезагрузите для активации)');
-                }
+                notify(ok ? p.name + ' ✓' : p.name + ' (перезагрузите)');
                 if (cb) cb();
             });
-        } catch (e) {
-            console.error('[urrowstore] installPlugin error:', e);
-            notify('Ошибка установки');
-            if (cb) cb();
-        }
+        } catch (e) { notify('Ошибка'); if (cb) cb(); }
     }
 
     function uninstallPlugin(p, cb) {
         try {
             Lampa.Storage.set('plugins', getExt().filter(function (e) { return e.url !== p.script_url; }));
             if (Lampa.Plugins && Lampa.Plugins.remove) Lampa.Plugins.remove({ url: p.script_url });
-            notify(p.name + ' удалён из списка. Для полного отключения перезапустите Lampa.');
+            notify(p.name + ' удалён (перезагрузите)');
             if (cb) cb();
         } catch (e) { if (cb) cb(); }
+    }
+
+    // === COMPONENT ===
+    function UrrowStoreComp(obj) {
+        var self = this;
+        var el = null;
+        var state = { all: [], cat: 'all', page: 0, catalog: null };
+
+        self.create = function () {
+            injectCSS();
+            el = document.createElement('div');
+            el.className = 'us';
+            el.innerHTML = '<div class="us-load"><div class="us-spin"></div></div>';
+            fetchCatalog(false, function (c) {
+                state.catalog = c;
+                state.all = c.plugins || [];
+                self.renderList();
+            });
+            return el;
+        };
+
+        self.render = function () { return el; };
+
+        self.start = function () {
+            if (!el) return;
+            try {
+                Lampa.Controller.collectionSet(el);
+                var first = el.querySelector('.selector');
+                if (first) Lampa.Controller.collectionFocus(first, el);
+            } catch (e) {}
+        };
+
+        self.back = function () { try { Lampa.Activity.backward(); } catch (e) {} };
+        self.destroy = function () { el = null; };
+
+        self.filtered = function () {
+            return state.all.filter(function (p) {
+                return (state.cat === 'all' || p.category === state.cat) && p.status !== 'broken';
+            });
+        };
+
+        self.renderList = function () {
+            var f = self.filtered();
+            var ext = getExt();
+            var page = state.page;
+            var PER_PAGE = 20;
+            var total = f.length;
+            var pages = Math.ceil(total / PER_PAGE);
+            var shown = f.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
+            var h = '';
+
+            h += '<div class="us-row">';
+            h += '<button class="selector us-b us-b--p" data-do="refresh">↻ Каталог</button>';
+            h += '<button class="selector us-b us-b--s" data-do="check">✓ Проверить</button>';
+            h += '<span style="flex:1"></span>';
+            h += '<span style="font-size:0.75em;color:rgba(255,255,255,0.3)">' + total + ' плагинов · ' + ext.length + ' установлено</span>';
+            h += '</div>';
+
+            var cats = {};
+            state.all.forEach(function (p) { if (p.status !== 'broken') cats[p.category] = (cats[p.category] || 0) + 1; });
+            var catNames = { interface:'Интерфейс', player:'Плеер', catalog:'Каталог', torrent:'Торренты', misc:'Прочее' };
+            h += '<div class="us-tabs">';
+            h += '<button class="selector us-tab ' + (state.cat === 'all' ? 'us-tab--on' : '') + '" data-cat="all">Все</button>';
+            Object.keys(cats).forEach(function (c) {
+                h += '<button class="selector us-tab ' + (state.cat === c ? 'us-tab--on' : '') + '" data-cat="' + c + '">' + (catNames[c] || c) + '</button>';
+            });
+            h += '</div>';
+
+            h += '<div class="us-list">';
+            shown.forEach(function (p) {
+                var inst = isInst(p.script_url);
+                var cls = 'us-card selector' + (inst ? ' us-card--in' : '');
+                var badge = p.status === 'broken' ? '<span class="us-card__badge us-card__badge--br">✗</span>'
+                    : inst ? '<span class="us-card__badge us-card__badge--ok">✓</span>'
+                    : '<span class="us-card__badge us-card__badge--old">+</span>';
+
+                h += '<div class="' + cls + '" data-pid="' + p.id + '">';
+                h += '<div class="us-card__icon">' + p.icon + '</div>';
+                h += '<div class="us-card__info">';
+                h += '<div class="us-card__name">' + p.name + '</div>';
+                h += '<div class="us-card__author">' + p.author + ' · v' + p.version + '</div>';
+                h += '<div class="us-card__desc">' + p.description + '</div>';
+                h += '</div>';
+                h += badge;
+                h += '</div>';
+            });
+            h += '</div>';
+
+            if (page < pages - 1) h += '<div class="us-more selector" data-do="more">Показать ещё (' + (total - (page + 1) * 20) + ')</div>';
+            if (!total) h += '<div class="us-empty">Ничего не найдено</div>';
+
+            el.innerHTML = h;
+            self.bind();
+            self.start();
+        };
+
+        self.bind = function () {
+            el.querySelectorAll('.us-card').forEach(function (card) {
+                card.addEventListener('hover:enter', function () {
+                    var pid = card.getAttribute('data-pid');
+                    var p = state.all.find(function (x) { return x.id === pid; });
+                    if (p) self.showActions(p, isInst(p.script_url));
+                });
+                card.addEventListener('hover:focus', function () {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                });
+            });
+
+            el.querySelectorAll('[data-cat]').forEach(function (b) {
+                b.addEventListener('hover:enter', function () {
+                    state.cat = b.getAttribute('data-cat');
+                    state.page = 0;
+                    setTimeout(function () { self.renderList(); }, 50);
+                });
+            });
+
+            el.querySelectorAll('[data-do="more"]').forEach(function (b) {
+                b.addEventListener('hover:enter', function () {
+                    state.page++;
+                    setTimeout(function () { self.renderList(); }, 50);
+                });
+            });
+
+            el.querySelectorAll('[data-do="refresh"]').forEach(function (b) {
+                b.addEventListener('hover:enter', function () {
+                    fetchCatalog(true, function (c) {
+                        state.catalog = c; state.all = c.plugins || [];
+                        notify('Каталог обновлён');
+                        self.renderList();
+                    });
+                });
+            });
+
+            el.querySelectorAll('[data-do="check"]').forEach(function (b) {
+                b.addEventListener('hover:enter', function () {
+                    var br = state.all.filter(function (p) { return p.status === 'broken'; }).length;
+                    notify(br ? 'Сломанных: ' + br : '✓ Все ок');
+                    self.start();
+                });
+            });
+        };
+
+        self.showActions = function (p, inst) {
+            var items = inst
+                ? [{ title: 'Удалить', onSelect: function () { uninstallPlugin(p, function () { self.renderList(); }); } }]
+                : [{ title: 'Установить', onSelect: function () { installPlugin(p, function () { self.renderList(); }); } }];
+
+            Lampa.Select.show({ title: p.name, items: items });
+        };
+    }
+
+    // === OPEN ===
+    var _opening = false;
+    function openStore() {
+        if (_opening) return;
+        _opening = true;
+        setTimeout(function () { _opening = false; }, 2000);
+        Lampa.Activity.push({ url: 'urrowstore', component: 'urrowstore_main', title: 'URROW Store' });
     }
 
     // === CSS ===
@@ -165,201 +298,10 @@
         document.head.appendChild(s);
     }
 
-    // === COMPONENT ===
-    function UrrowStoreComp(obj) {
-        var self = this;
-        var el = null;
-        var state = { all: [], cat: 'all', page: 0, catalog: null };
-
-        self.create = function () {
-            injectCSS();
-            el = document.createElement('div');
-            el.className = 'us';
-            el.innerHTML = '<div class="us-load"><div class="us-spin"></div></div>';
-            fetchCatalog(false, function (c) {
-                state.catalog = c;
-                state.all = c.plugins || [];
-                self.renderList();
-            });
-            return el;
-        };
-
-        self.render = function () { return el; };
-
-        self.start = function () {
-            if (!el) return;
-            try {
-                Lampa.Controller.collectionSet(el);
-                var first = el.querySelector('.selector');
-                if (first) Lampa.Controller.collectionFocus(first, el);
-            } catch (e) {}
-        };
-
-        self.back = function () { try { Lampa.Activity.backward(); } catch (e) {} };
-        self.destroy = function () { el = null; };
-
-        self.filtered = function () {
-            return state.all.filter(function (p) {
-                var mc = state.cat === 'all' || p.category === state.cat;
-                return mc && p.status !== 'broken';
-            });
-        };
-
-        // Рендер контента (вызывается из bind и create)
-        self.renderList = function () {
-            var f = self.filtered();
-            var ext = getExt();
-            var page = state.page;
-            var total = f.length;
-            var pages = Math.ceil(total / PER_PAGE);
-            var shown = f.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
-            var h = '';
-
-            // Верхняя панель
-            h += '<div class="us-row">';
-            h += '<button class="selector us-b us-b--p" data-do="refresh">↻ Каталог</button>';
-            h += '<button class="selector us-b us-b--s" data-do="check">✓ Проверить</button>';
-            h += '<span style="flex:1"></span>';
-            h += '<span style="font-size:0.75em;color:rgba(255,255,255,0.3)">' + total + ' плагинов · ' + ext.length + ' установлено</span>';
-            h += '</div>';
-
-            // Вкладки (макс 5)
-            var cats = {};
-            state.all.forEach(function (p) { if (p.status !== 'broken') cats[p.category] = (cats[p.category] || 0) + 1; });
-            var catNames = { interface:'Интерфейс', player:'Плеер', catalog:'Каталог', torrent:'Торренты', misc:'Прочее' };
-            h += '<div class="us-tabs">';
-            h += '<button class="selector us-tab ' + (state.cat === 'all' ? 'us-tab--on' : '') + '" data-cat="all">Все</button>';
-            Object.keys(cats).forEach(function (c) {
-                h += '<button class="selector us-tab ' + (state.cat === c ? 'us-tab--on' : '') + '" data-cat="' + c + '">' + (catNames[c] || c) + '</button>';
-            });
-            h += '</div>';
-
-            // Список карточек
-            h += '<div class="us-list">';
-            shown.forEach(function (p) {
-                var inst = isInst(p.script_url);
-                var cls = 'us-card selector' + (inst ? ' us-card--in' : '');
-                var badge = '';
-                if (p.status === 'broken') badge = '<span class="us-card__badge us-card__badge--br">✗</span>';
-                else if (inst) badge = '<span class="us-card__badge us-card__badge--ok">✓</span>';
-                else badge = '<span class="us-card__badge us-card__badge--old">+</span>';
-
-                h += '<div class="' + cls + '" data-pid="' + p.id + '">';
-                h += '<div class="us-card__icon">' + p.icon + '</div>';
-                h += '<div class="us-card__info">';
-                h += '<div class="us-card__name">' + p.name + '</div>';
-                h += '<div class="us-card__author">' + p.author + ' · v' + p.version + '</div>';
-                h += '<div class="us-card__desc">' + p.description + '</div>';
-                h += '</div>';
-                h += badge;
-                h += '</div>';
-            });
-            h += '</div>';
-
-            // Кнопка "Показать ещё"
-            if (page < pages - 1) {
-                h += '<div class="us-more selector" data-do="more">Показать ещё (' + (total - (page + 1) * PER_PAGE) + ')</div>';
-            }
-
-            if (!total) h += '<div class="us-empty">Ничего не найдено</div>';
-
-            el.innerHTML = h;
-            self.bind();
-            self.start();
-        };
-
-        self.bind = function () {
-            // Карточки — весь элемент кликабелен
-            el.querySelectorAll('.us-card').forEach(function (card) {
-                card.addEventListener('hover:enter', function () {
-                    var pid = card.getAttribute('data-pid');
-                    var p = state.all.find(function (x) { return x.id === pid; });
-                    if (!p) return;
-                    var inst = isInst(p.script_url);
-                    self.showActions(p, inst);
-                });
-                card.addEventListener('hover:focus', function () {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                });
-            });
-
-            // Вкладки
-            el.querySelectorAll('[data-cat]').forEach(function (b) {
-                b.addEventListener('hover:enter', function () {
-                    state.cat = b.getAttribute('data-cat');
-                    state.page = 0;
-                    setTimeout(function () { self.renderList(); }, 50);
-                });
-            });
-
-            // Показать ещё
-            el.querySelectorAll('[data-do="more"]').forEach(function (b) {
-                b.addEventListener('hover:enter', function () {
-                    state.page++;
-                    setTimeout(function () { self.renderList(); }, 50);
-                });
-            });
-
-            // Кнопки
-            el.querySelectorAll('[data-do="refresh"]').forEach(function (b) {
-                b.addEventListener('hover:enter', function () {
-                    fetchCatalog(true, function (c) {
-                        state.catalog = c; state.all = c.plugins || [];
-                        notify('Каталог обновлён');
-                        self.renderList();
-                    });
-                });
-            });
-
-            el.querySelectorAll('[data-do="check"]').forEach(function (b) {
-                b.addEventListener('hover:enter', function () {
-                    var br = state.all.filter(function (p) { return p.status === 'broken'; }).length;
-                    notify(br ? 'Сломанных: ' + br : '✓ Все ок');
-                    self.start();
-                });
-            });
-        };
-
-        // Меню действий через Lampa.Select
-        self.showActions = function (p, inst) {
-            var items = [];
-            if (inst) {
-                items.push({ title: 'Удалить', action: 'uninstall' });
-            } else {
-                items.push({ title: 'Установить', action: 'install' });
-            }
-            items.push({ title: 'Назад', action: 'back' });
-
-            Lampa.Select.show({
-                title: p.name,
-                items: items.map(function (i) {
-                    return {
-                        title: i.title,
-                        onSelect: function () {
-                            if (i.action === 'install') {
-                                installPlugin(p, function () { self.renderList(); });
-                            } else if (i.action === 'uninstall') {
-                                uninstallPlugin(p, function () { self.renderList(); });
-                            }
-                        }
-                    };
-                })
-            });
-        };
-    }
-
-    // === OPEN ===
-    var _opening = false;
-    function openStore() {
-        if (_opening) return;
-        _opening = true;
-        setTimeout(function () { _opening = false; }, 2000);
-        Lampa.Activity.push({ url: 'urrowstore', component: 'urrowstore_main', title: 'URROW Store' });
-    }
-
     // === INIT ===
     function init() {
         console.log('[urrowstore] init v=' + getVer());
+
         try { Lampa.Component.add('urrowstore_main', UrrowStoreComp); } catch (e) {}
 
         try {
@@ -391,17 +333,15 @@
                 Lampa.Menu.addButton({ name: 'URROW Store', description: 'Магазин плагинов',
                     icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>',
                     onSelect: openStore });
-                console.log('[urrowstore] Menu.addButton OK');
             }
-        } catch (e) { console.error('[urrowstore] Menu.addButton error:', e); }
+        } catch (e) {}
 
         try {
             if (Lampa.SettingsApi) {
                 Lampa.SettingsApi.addComponent({ component: 'urrowstore', icon: '📦', name: 'URROW Store' });
-                Lampa.SettingsApi.addParam({ component: 'urrowstore', param: { name: 'urrowstore_ver', type: 'static' }, field: { name: 'Версия', description: Lampa.Storage.get('urrowstore_ver', '3.0.1') } });
-                console.log('[urrowstore] SettingsApi OK');
+                Lampa.SettingsApi.addParam({ component: 'urrowstore', param: { name: 'urrowstore_ver', type: 'static' }, field: { name: 'Версия', description: Lampa.Storage.get('urrowstore_ver', '3.1.0') } });
             }
-        } catch (e) { console.error('[urrowstore] SettingsApi error:', e); }
+        } catch (e) {}
 
         checkUpdate();
         console.log('[urrowstore] ready');

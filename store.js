@@ -147,6 +147,7 @@
                 state.all = c.plugins || [];
                 self.renderList();
             });
+            return el;
         };
 
         self.render = function () { return el; };
@@ -314,7 +315,11 @@
     }
 
     // === OPEN ===
+    var _opening = false;
     function openStore() {
+        if (_opening) return;
+        _opening = true;
+        setTimeout(function () { _opening = false; }, 2000);
         Lampa.Activity.push({ url: 'urrowstore', component: 'urrowstore_main', title: 'URROW Store' });
     }
 

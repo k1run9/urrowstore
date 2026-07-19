@@ -387,13 +387,6 @@
         } catch (e) {}
 
         try {
-            if (Lampa.Head && Lampa.Head.addIcon) {
-                Lampa.Head.addIcon('<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>', function () { openStore(); });
-                console.log('[urrowstore] Head.addIcon OK');
-            }
-        } catch (e) { console.error('[urrowstore] Head.addIcon error:', e); }
-
-        try {
             if (Lampa.Menu && Lampa.Menu.addButton) {
                 Lampa.Menu.addButton({ name: 'URROW Store', description: 'Магазин плагинов',
                     icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>',

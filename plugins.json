@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "updated": "2026-07-19",
-  "store_url": "https://urrow.github.io/urrowstore/",
+  "store_url": "https://k1run9.github.io/urrowstore/",
   "plugins": [
     {
       "id": "urrowstore",
@@ -9,7 +9,7 @@
       "description": "Магазин плагинов для Lampa — установка и управление плагинами в один клик",
       "author": "urrow",
       "version": "1.0.0",
-      "url": "https://urrow.github.io/urrowstore/store.js",
+      "url": "https://k1run9.github.io/urrowstore/store.js",
       "icon": "📦",
       "category": "system",
       "tags": ["магазин", "плагины", "управление"],

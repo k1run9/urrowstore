@@ -5,7 +5,7 @@
     if (window.__urrow_store) return;
     window.__urrow_store = true;
 
-    var CATALOG_URL = 'https://urrow.github.io/urrowstore/plugins.json';
+    var CATALOG_URL = 'https://k1run9.github.io/urrowstore/plugins.json';
     var STORAGE_KEY = 'urrow_store_installed';
     var STORAGE_CACHE = 'urrow_store_catalog_cache';
     var STORAGE_CACHE_TIME = 'urrow_store_cache_time';

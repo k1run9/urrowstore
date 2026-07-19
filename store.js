@@ -65,12 +65,12 @@
             saveInstalled(installed);
 
             try {
-                var all = Lampa.Storage.get('plugins', []);
+                var all = Lampa.Storage.get('extensions', []);
                 if (!Array.isArray(all)) all = [];
                 var exists = all.some(function (p) { return p.url === plugin.url; });
                 if (!exists) {
                     all.push({ url: plugin.url, name: plugin.name, author: plugin.author || 'Unknown', status: 1 });
-                    Lampa.Storage.set('plugins', all);
+                    Lampa.Storage.set('extensions', all);
                 }
 
                 if (Lampa.Utils && Lampa.Utils.putScriptAsync) {
@@ -95,10 +95,10 @@
             saveInstalled(installed);
 
             try {
-                var all = Lampa.Storage.get('plugins', []);
+                var all = Lampa.Storage.get('extensions', []);
                 if (!Array.isArray(all)) all = [];
                 all = all.filter(function (p) { return p.url !== plugin.url; });
-                Lampa.Storage.set('plugins', all);
+                Lampa.Storage.set('extensions', all);
             } catch (e) {}
 
             notify(plugin.icon + ' ' + plugin.name + ' удалён');
@@ -112,14 +112,14 @@
                 saveInstalled(installed);
 
                 try {
-                    var all = Lampa.Storage.get('plugins', []);
+                    var all = Lampa.Storage.get('extensions', []);
                     if (!Array.isArray(all)) all = [];
                     all.forEach(function (p) {
                         if (p.url === installed[pluginId].url) {
                             p.status = installed[pluginId].enabled ? 1 : 0;
                         }
                     });
-                    Lampa.Storage.set('plugins', all);
+                    Lampa.Storage.set('extensions', all);
                 } catch (e) {}
 
                 notify(installed[pluginId].enabled ? 'Включён' : 'Выключен');

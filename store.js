@@ -365,9 +365,15 @@
                         }
                     } catch (e) {}
                 },
-                move: function (d) { try { Lampa.Controller.move(d); } catch (e) {} },
+                move: function (d) {
+                    try {
+                        if (Lampa.Controller.active() !== 'urrowstore') return;
+                        Lampa.Controller.move(d);
+                    } catch (e) {}
+                },
                 enter: function () {
                     try {
+                        if (Lampa.Controller.active() !== 'urrowstore') return;
                         var f = document.querySelector('.selector.focus');
                         if (f) {
                             if (typeof $ !== 'undefined') {
@@ -378,16 +384,22 @@
                         }
                     } catch (e) {}
                 },
-                back: function () { try { Lampa.Activity.backward(); } catch (e) {} }
+                back: function () {
+                    try {
+                        if (Lampa.Controller.active() !== 'urrowstore') return;
+                        Lampa.Activity.backward();
+                    } catch (e) {}
+                }
             });
         } catch (e) {}
 
         try {
-            if (Lampa.Head && Lampa.Head.addIcon) {
-                Lampa.Head.addIcon({
-                    icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>',
-                    onSelect: openStore
-                });
+            if (Lampa.Head && Lampa.Head.render) {
+                var headSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>';
+                var headBtn = $('<div class="head__action selector" title="URROW Store">' + headSvg + '</div>');
+                headBtn.on('hover:enter', openStore);
+                var headActions = Lampa.Head.render().find('.head__actions');
+                if (headActions.length) headActions.eq(0).prepend(headBtn);
             }
         } catch (e) {}
 
@@ -397,7 +409,13 @@
                 var menuBtn = $('<li class="menu__item selector"><div class="menu__ico">' + menuSvg + '</div><div class="menu__text">URROW Store</div></li>');
                 menuBtn.on('hover:enter', openStore);
                 var menuList = Lampa.Menu.render().find('.menu__list');
-                if (menuList.length) menuList.eq(0).append(menuBtn);
+                if (menuList.length) {
+                    menuList.eq(0).append(menuBtn);
+                    try {
+                        var menuSelectors = Lampa.Menu.render().find('.selector');
+                        if (menuSelectors.length) Lampa.Controller.collectionSet(menuSelectors);
+                    } catch (e) {}
+                }
             }
         } catch (e) {}
 

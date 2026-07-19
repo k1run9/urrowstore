@@ -2,6 +2,97 @@
 
 ## 2026-07-19
 
+- ! **Flixio** (flixio): disabled → enabled
+- ! **TemaV** (temav): disabled → enabled
+- ! **Vestnik** (vestnik): disabled → enabled
+- ! **Streamings** (streamings): disabled → enabled
+- ! **EasyTorrent** (easytorrent): disabled → enabled
+- ! **Dorama** (dorama): disabled → enabled
+- ! **RuTube** (rutube): disabled → enabled
+- ! **AppleTV** (appletv-tvigl): disabled → enabled
+- ! **Rate** (rate): disabled → enabled
+- ! **Rating OMDB** (rating-omdb): disabled → enabled
+- ! **Maxsm Ratings** (maxsm-ratings): disabled → enabled
+- ! **Rating Quality** (rating-quality): disabled → enabled
+- ! **Rating Year** (rating-year): disabled → enabled
+- ! **RatingUp** (ratingup): disabled → enabled
+- ! **Vote Colour** (vote-colour): disabled → enabled
+- ! **Drxaos Themes** (drxaos-themes): disabled → enabled
+- ! **MobTheme** (mobtheme): disabled → enabled
+- ! **3Buttons** (3buttons): disabled → enabled
+- ! **Cardify** (cardify): disabled → enabled
+- ! **Top Bar** (top-bar): disabled → enabled
+- ! **Logo** (logo): disabled → enabled
+- ! **Phone Menu** (phone-menu): disabled → enabled
+- ! **Collections** (collections): disabled → enabled
+- ! **Seasons** (seasons): disabled → enabled
+- ! **Quality** (quality): disabled → enabled
+- ! **Surs Quality** (surs-quality): disabled → enabled
+- ! **Source Sort** (source-sort): disabled → enabled
+- ! **Sources** (sources): disabled → enabled
+- ! **Src Filter** (src-filter): disabled → enabled
+- ! **Head Filter** (head-filter): disabled → enabled
+- ! **TipTop** (tiptop): disabled → enabled
+- ! **New Released** (new-released): disabled → enabled
+- ! **Shots** (shots): disabled → enabled
+- ! **Cache** (cache): disabled → enabled
+- ! **Exit** (exit): disabled → enabled
+- ! **No Trailers** (notrailers): disabled → enabled
+- ! **Torrents Styles** (torrents-styles): disabled → enabled
+- ! **Menu Editor** (menu-editor): disabled → enabled
+- ! **Studios** (studios): disabled → enabled
+- ! **TMDB Mod** (tmdb-mod): disabled → enabled
+- ! **Aloader** (aloader): disabled → enabled
+- ! **Player** (player): disabled → enabled
+- ! **AI Search** (ai-search): disabled → enabled
+- ! **Wiki** (wiki): disabled → enabled
+- ! **WikiFind** (wikifind): disabled → enabled
+- ! **Yandex Music** (yandex-music): disabled → enabled
+- ! **OnlineServe** (online-serve): disabled → enabled
+- ! **HFix** (hfix): disabled → enabled
+- ! **Season Fix** (season-fix): disabled → enabled
+- ! **Anime Skip** (anime-skip): disabled → enabled
+- ! **Interface** (interface-ipavlin): disabled → enabled
+- ! **Cardify Rating** (cardify-rating): disabled → enabled
+- ! **Logo** (logo-ipavlin): disabled → enabled
+- ! **Series Progress** (series-progress): disabled → enabled
+- ! **Torrent Styles** (torrent-styles-ipavlin): disabled → enabled
+- ! **Series Skip** (series-skip): disabled → enabled
+- ! **PiP** (pip): disabled → enabled
+- ! **RuTube Trailers** (rutube-trailers): disabled → enabled
+- ! **LNUM** (lnum): disabled → enabled
+- ! **Bookmarks Sync** (bookmarks-sync): disabled → enabled
+- ! **Profiles** (profiles): disabled → enabled
+- ! **TMDB Networks** (tmdb-networks): disabled → enabled
+- ! **Custom Favorites** (custom-favs): disabled → enabled
+- ! **Lampac Source Filter** (lampac-src-filter): disabled → enabled
+- ! **Anti DMCA** (anti-dmca): disabled → enabled
+- ! **EasyTorrent Pro** (easytorrent-darkest): disabled → enabled
+- ! **Applecation** (applecation): disabled → enabled
+- ! **InfuseSync** (infusesync): disabled → enabled
+- ! **Apple TV Tweaks** (its-appletv): disabled → enabled
+- ! **Aloader** (aloader-iam): disabled → enabled
+- ! **SrcSwap** (srcswap): disabled → enabled
+- ! **BB123** (bb123): disabled → enabled
+- ! **MovPlg** (movplg): disabled → enabled
+- ! **КиноЕхо** (kinoecho): disabled → enabled
+- ! **Русские фильмы** (ru-lampa): disabled → enabled
+- ! **Lampa Rate** (lampa-rate): disabled → enabled
+- ! **Rating1** (rating1): disabled → enabled
+- ! **SyncPro** (syncpro): disabled → enabled
+- ! **Card Overlay** (card-overlay): disabled → enabled
+- ! **NSL** (nsl): disabled → enabled
+- ! **Jellyfin** (jellyfin): disabled → enabled
+- ! **UX** (ux): disabled → enabled
+- ! **Autoplay** (autoplay): disabled → enabled
+- ! **Speed** (speed): disabled → enabled
+- ! **Filter Content** (filter-content): disabled → enabled
+- ! **Нижнее меню** (new-phone-menu): disabled → enabled
+
+# CHANGELOG
+
+## 2026-07-19
+
 Изменений нет.
 
 # CHANGELOG

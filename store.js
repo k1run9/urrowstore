@@ -145,7 +145,7 @@
             fetchCatalog(false, function (c) {
                 state.catalog = c;
                 state.all = c.plugins || [];
-                self.render();
+                self.renderList();
             });
         };
 
@@ -170,7 +170,8 @@
             });
         };
 
-        self.render = function () {
+        // Рендер контента (вызывается из bind и create)
+        self.renderList = function () {
             var f = self.filtered();
             var ext = getExt();
             var page = state.page;
@@ -252,7 +253,7 @@
                 b.addEventListener('hover:enter', function () {
                     state.cat = b.getAttribute('data-cat');
                     state.page = 0;
-                    setTimeout(function () { self.render(); }, 50);
+                    setTimeout(function () { self.renderList(); }, 50);
                 });
             });
 
@@ -260,7 +261,7 @@
             el.querySelectorAll('[data-do="more"]').forEach(function (b) {
                 b.addEventListener('hover:enter', function () {
                     state.page++;
-                    setTimeout(function () { self.render(); }, 50);
+                    setTimeout(function () { self.renderList(); }, 50);
                 });
             });
 
@@ -270,7 +271,7 @@
                     fetchCatalog(true, function (c) {
                         state.catalog = c; state.all = c.plugins || [];
                         notify('Каталог обновлён');
-                        self.render();
+                        self.renderList();
                     });
                 });
             });
@@ -301,9 +302,9 @@
                         title: i.title,
                         onSelect: function () {
                             if (i.action === 'install') {
-                                installPlugin(p, function () { self.render(); });
+                                installPlugin(p, function () { self.renderList(); });
                             } else if (i.action === 'uninstall') {
-                                uninstallPlugin(p, function () { self.render(); });
+                                uninstallPlugin(p, function () { self.renderList(); });
                             }
                         }
                     };

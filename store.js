@@ -524,9 +524,30 @@
             return container;
         }
 
-        /* ===== Activity ===== */
-        function createStoreActivity() {
-            return renderStore();
+        /* ===== Activity Component ===== */
+        function UrrowStoreComponent(object) {
+            var self = this;
+            var $element = null;
+
+            self.create = function () {
+                $element = renderStore();
+                self.start();
+            };
+
+            self.render = function () {
+                return $element;
+            };
+
+            self.start = function () {
+                if ($element) {
+                    Lampa.Controller.collectionSet($element);
+                    Lampa.Controller.collectionFocus(false, $element);
+                }
+            };
+
+            self.destroy = function () {
+                $element = null;
+            };
         }
 
         /* ===== Header Button ===== */
@@ -558,7 +579,7 @@
         };
 
         if (Lampa.Component) {
-            Lampa.Component.add('urrow_store', createStoreActivity);
+            Lampa.Component.add('urrow_store', UrrowStoreComponent);
         }
 
         addHeaderButton();

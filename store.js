@@ -171,7 +171,6 @@
                 if (!sel.length) return;
                 Lampa.Controller.collectionSet(el);
                 Lampa.Controller.collectionFocus(sel[0], el);
-                Lampa.Controller.toggle('urrowstore');
             } catch (e) {}
         };
 
@@ -367,33 +366,6 @@
         log('init v=' + getVer());
 
         try { Lampa.Component.add('urrowstore_main', UrrowStoreComp); } catch (e) {}
-
-        try {
-            Lampa.Controller.add('urrowstore', {
-                toggle: function () {
-                    try {
-                        var r = document.querySelector('.us');
-                        if (r) {
-                            Lampa.Controller.collectionSet(r);
-                            var f = r.querySelector('.selector');
-                            if (f) Lampa.Controller.collectionFocus(f, r);
-                        }
-                    } catch (e) {}
-                },
-                move: function (d) {
-                    try { Lampa.Controller.move(d); } catch (e) {}
-                },
-                enter: function () {
-                    try {
-                        var f = document.querySelector('.selector.focus');
-                        if (f) $(f).trigger('hover:enter');
-                    } catch (e) {}
-                },
-                back: function () {
-                    try { Lampa.Activity.backward(); } catch (e) {}
-                }
-            });
-        } catch (e) {}
 
         try {
             var headSvg = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>';

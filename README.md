@@ -1,85 +1,51 @@
 # URROW Store
 
-📦 Магазин плагинов для Lampa — **89 плагинов** в одном месте.
+Магазин плагинов для Lampa. Установка и управление плагинами в один клик.
 
 ## Установка
 
-1. Откройте **Lampa** → **Настройки** → **Плагины**
-2. Нажмите **«Добавить плагин»**
-3. Вставьте ссылку:
+Lampa → Настройки → Плагины → Добавить плагин → вставить ссылку:
 
 ```
 https://k1run9.github.io/urrowstore/store.js
 ```
 
-4. Подтвердите установку и **перезапустите** Lampa
+## Как использовать
 
-## Возможности
+- **Меню слева** — пункт «URROW Store»
+- **Шапка主页面** — иконка `📦` рядом с поиском
+- Внутри магазина: категории, поиск, кнопки установки/удаления
 
-- ⚡ **Установка в один клик**
-- 🔄 **Автообновление** каталога
-- 🔍 **Поиск** по названию и описанию
-- 📂 **10 категорий** плагинов
-- 🗑 **Удаление** ненужных плагинов
-- ✅ **Проверка** работоспособности
+## Функции
 
-## Категории плагинов
+- Установка / удаление плагинов в один клик
+- Автообновление каталога каждые 3 часа
+- Проверка работоспособности плагинов
+- Поиск по названию и описанию
+- Фильтрация по категориям
 
-### 🎬 Онлайн-источники (7)
-Flixio, TemaV, Vestnik, Dorama, RuTube, AppleTV, OnlineServe
+## Плагины в каталоге
 
-### ⭐ Рейтинги (7)
-Rate, Rating OMDB, Maxsm Ratings, Rating Quality, Rating Year, RatingUp, Vote Colour, Lampa Rate, Rating1
+| Категория | Кол-во | Примеры |
+|-----------|--------|---------|
+| 🎬 Онлайн | 7 | Flixio, TemaV, Vestnik, Dorama, RuTube |
+| ⭐ Рейтинги | 9 | Rate, OMDB, Rating Quality, Vote Colour |
+| 🎨 UI/Темы | 15 | Drxaos Themes, Cardify, Aloader, Logo |
+| 🔧 Утилиты | 28 | Collections, Quality, Cache, Player |
+| 🤖 AI | 3 | AI Search, Wiki, WikiFind |
+| 🎵 Музыка | 1 | Yandex Music |
+| 📺 Контент | 7 | LNUM, КиноЕхо, Русские фильмы |
+| 🔗 Медиа | 2 | Jellyfin, InfuseSync |
 
-### 🎨 Темы и UI (15)
-Drxaos Themes, MobTheme, 3Buttons, Cardify, Top Bar, Logo, Phone Menu, Aloader, Interface, Cardify Rating, BB123, MovPlg, SrcSwap, New Phone Menu, Applecation
+## Авторы плагинов
 
-### 🔧 Утилиты (28)
-Collections, Seasons, Quality, Source Sort, Sources, Src Filter, Head Filter, TipTop, New Released, Shots, Cache, Exit, No Trailers, Torrents Styles, Menu Editor, Studios, TMDB Mod, Player, Season Fix, Anime Skip, Series Progress, Series Skip, PiP, RuTube Trailers, InfuseSync, Apple TV Tweaks, EasyTorrent, HFix, SyncPro, Speed, CTS, Filter Content, Autoplay, TMDB Mod
+tvigl, ipavlin98, levende, darkestclouds, iamonefm, evgenkotta, romero053-glitch, amikdn, zbirach, BDVBurik, YuriKuv, cash94 и другие.
 
-### 🤖 AI / Поиск (3)
-AI Search, Wiki, WikiFind
+## Ссылки
 
-### 🎵 Музыка (1)
-Yandex Music
-
-### 📺 Контент (7)
-Flixio, Collections, TipTop, New Released, Shots, Studios, LNUM, TMDB Networks, КиноЕхо, Русские фильмы
-
-### 📱 Мобильные (2)
-MobTheme, New Phone Menu
-
-### 🔗 Медиа-серверы (2)
-Jellyfin, InfuseSync
-
-### 🌤️ Прочее (1)
-Погода
-
-## Источники плагинов
-
-| Автор | Количество |
-|-------|-----------|
-| tvigl | 35+ |
-| ipavlin98 | 11 |
-| levende | 7 |
-| darkestclouds | 4 |
-| iamonefm | 4 |
-| evgenkotta | 1 |
-| romero053-glitch | 1 |
-| amikdn | 1 |
-| zbirach | 1 |
-| BDVBurik | 2 |
-| YuriKuv | 1 |
-| cash94 | 1 |
-| и другие | |
-
-## Техническая информация
-
-- Плагин работает через `window.Lampa` API
-- Каталог хранится в `plugins.json` на GitHub Pages
-- Установленные плагины сохраняются в `localStorage`
-- Кэш каталога обновляется каждый час
-- Все URL плагинов проверены и работают
+- Репозиторий: https://github.com/k1run9/urrowstore
+- Страница: https://k1run9.github.io/urrowstore/
+- Каталог: https://k1run9.github.io/urrowstore/plugins.json
 
 ## Лицензия
 

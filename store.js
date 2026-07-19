@@ -1,38 +1,32 @@
-/* URROW Store v2.1 — Магазин плагинов для Lampa (TV Remote Ready) */
+/* URROW Store v2.4 — Магазин плагинов для Lampa */
 (function () {
     'use strict';
 
     if (window.__urrow_store) return;
     window.__urrow_store = true;
 
+    console.log('[urrowstore] script loaded');
+
     var CATALOG_URL = 'https://k1run9.github.io/urrowstore/catalog.json';
     var CACHE_KEY = 'urrow_catalog_cache';
     var CACHE_TIME_KEY = 'urrow_catalog_cache_time';
     var CACHE_TTL = 3 * 3600 * 1000;
 
+    // Минимальная проверка Lampa
     function waitForLampa(cb) {
-        if (window.Lampa && Lampa.Manifest && Lampa.Activity && Lampa.Storage && Lampa.Controller) cb();
-        else setTimeout(function () { waitForLampa(cb); }, 100);
-    }
-
-    // Ждём готовности DOM шапки перед добавлением иконок
-    function waitForHeaderReady(cb, attempts) {
-        attempts = attempts || 0;
-        if (attempts > 100) {
-            console.warn('[urrowstore] Шапка не найдена после 100 попыток');
-            return;
-        }
-        try {
-            var $ = window.jQuery || window.$;
-            var headExists = $ && $('.head').length > 0;
-            if (headExists) cb();
-            else setTimeout(function () { waitForHeaderReady(cb, attempts + 1); }, 100);
-        } catch (e) {
-            setTimeout(function () { waitForHeaderReady(cb, attempts + 1); }, 100);
+        if (window.Lampa && Lampa.Manifest && Lampa.Activity && Lampa.Storage) {
+            cb();
+        } else {
+            setTimeout(function () { waitForLampa(cb); }, 200);
         }
     }
 
     waitForLampa(function () {
+        console.log('[urrowstore] Lampa ready');
+
+        // Добавляем кнопку в шапку через 3 сек после загрузки (без блокирующего ожидания)
+        setTimeout(addHeaderButton, 3000);
+        setTimeout(addHeaderButton, 6000); // повторная попытка на случай если шапка не готова
 
         function notify(msg) { if (Lampa.Noty) Lampa.Noty.show(msg); }
 
@@ -587,15 +581,9 @@
         }
 
         // === REGISTER ===
-        Lampa.Manifest.plugin = { type: 'other', version: '2.3.0', name: 'URROW Store', description: 'Динамический магазин плагинов', component: 'urrow_store' };
+        Lampa.Manifest.plugin = { type: 'other', version: '2.4.0', name: 'URROW Store', description: 'Динамический магазин плагинов', component: 'urrow_store' };
         if (Lampa.Component) Lampa.Component.add('urrow_store', UrrowStoreComponent);
         registerController();
-
-        // Ждём готовности DOM шапки перед добавлением иконки
-        waitForHeaderReady(function () {
-            try { addHeaderButton(); }
-            catch (e) { console.error('[urrowstore] addHeaderButton failed:', e); }
-        });
 
         if (Lampa.Menu && Lampa.Menu.addButton) {
             try {
@@ -629,6 +617,6 @@
 
         // Логирование версии для диагностики
         var _ver = getLampaVersion();
-        console.log('[urrowstore] Lampa v=' + _ver + ', store v2.3.0 loaded');
+        console.log('[urrowstore] Lampa v=' + _ver + ', store v2.4.0 loaded');
     });
 })();

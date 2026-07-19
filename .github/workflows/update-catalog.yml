@@ -23,7 +23,7 @@ jobs:
           node-version: '20'
 
       - name: Build catalog
-        run: node build-catalog.js
+        run: node build-catalog.cjs
 
       - name: Check for broken plugins
         id: check

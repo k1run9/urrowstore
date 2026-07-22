@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "updated": "2026-07-22T13:16:40.828Z",
+  "updated": "2026-07-22T18:53:43.502Z",
   "plugins": [
     {
       "id": "flixio",
@@ -13,7 +13,7 @@
       "category": "catalog",
       "enabled": true,
       "checksum": "e36e0da4a45879b7cc42b347e8cd9906b501a4a95d75f9be429faa8c72fdbba3",
-      "last_checked": "2026-07-22T13:16:31.050Z"
+      "last_checked": "2026-07-22T18:53:40.399Z"
     },
     {
       "id": "temav",
@@ -26,7 +26,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "fe36a31a651cdce34cc619d36e7e35d27958c4de01d46c56c011a66153cef4d9",
-      "last_checked": "2026-07-22T13:16:31.289Z"
+      "last_checked": "2026-07-22T18:53:40.570Z"
     },
     {
       "id": "vestnik",
@@ -39,7 +39,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "8ab95c1aa262d417b8cefb9e1c0949812103a7ff3945f452600e23062d9ddac7",
-      "last_checked": "2026-07-22T13:16:31.399Z"
+      "last_checked": "2026-07-22T18:53:40.612Z"
     },
     {
       "id": "streamings",
@@ -52,7 +52,7 @@
       "category": "catalog",
       "enabled": true,
       "checksum": "1149306f4f96120a17a67711a3b20eb04871eb688e7c22842b8bf6ee839292cc",
-      "last_checked": "2026-07-22T13:16:31.502Z"
+      "last_checked": "2026-07-22T18:53:40.649Z"
     },
     {
       "id": "easytorrent",
@@ -65,7 +65,7 @@
       "category": "torrent",
       "enabled": true,
       "checksum": "62d14f1b062df3b92abfdc1276fc892f86312fe6e44efb4196bf0a02702b0b90",
-      "last_checked": "2026-07-22T13:16:31.598Z"
+      "last_checked": "2026-07-22T18:53:40.676Z"
     },
     {
       "id": "dorama",
@@ -78,7 +78,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "6b39d3abf9a025a223e6a3c5e9fdc5563c196c4d40992ce1ed437554cdb40ae5",
-      "last_checked": "2026-07-22T13:16:31.727Z"
+      "last_checked": "2026-07-22T18:53:40.709Z"
     },
     {
       "id": "rutube",
@@ -91,7 +91,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "8610f2057dc2ced76ed5737f72e2a7fa5099ac1f94d3edf8f21b7a10395e6487",
-      "last_checked": "2026-07-22T13:16:31.818Z"
+      "last_checked": "2026-07-22T18:53:40.721Z"
     },
     {
       "id": "appletv-tvigl",
@@ -104,7 +104,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "38e3964502d822cd1c7c5d6b02ee2bf2188409e20cea10ffa565eb7c8edad361",
-      "last_checked": "2026-07-22T13:16:31.920Z"
+      "last_checked": "2026-07-22T18:53:40.753Z"
     },
     {
       "id": "rate",
@@ -117,7 +117,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "3f4bc60c6044ba95009d5a95dffe2f014ce4c266f86608cce75bcbcc9de40eb3",
-      "last_checked": "2026-07-22T13:16:32.044Z"
+      "last_checked": "2026-07-22T18:53:40.777Z"
     },
     {
       "id": "rating-omdb",
@@ -130,7 +130,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "9478642806340b97ff08d059ea6cb43233c56f8ef07345d733e7697d2954c323",
-      "last_checked": "2026-07-22T13:16:32.148Z"
+      "last_checked": "2026-07-22T18:53:40.807Z"
     },
     {
       "id": "maxsm-ratings",
@@ -143,7 +143,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "edf4c9ef331d3f2f6de24a212043118b52d4dd6bdae3652bc54a799b1d6385eb",
-      "last_checked": "2026-07-22T13:16:32.273Z"
+      "last_checked": "2026-07-22T18:53:40.825Z"
     },
     {
       "id": "rating-quality",
@@ -156,7 +156,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "76120a9a6195b65603017ce92de6430b59374f78d8acf82d35ffafa95efcfb71",
-      "last_checked": "2026-07-22T13:16:32.371Z"
+      "last_checked": "2026-07-22T18:53:40.847Z"
     },
     {
       "id": "rating-year",
@@ -169,7 +169,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "40c0f60b9cd62ef587f1c468df075adb28e0add4fddd8b7218bb6471a919ef6e",
-      "last_checked": "2026-07-22T13:16:32.469Z"
+      "last_checked": "2026-07-22T18:53:40.863Z"
     },
     {
       "id": "ratingup",
@@ -182,7 +182,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "14d24a3df115e63416561cf2ef9f4999b893bb83759a788b74584fce64f1ea6b",
-      "last_checked": "2026-07-22T13:16:32.579Z"
+      "last_checked": "2026-07-22T18:53:40.883Z"
     },
     {
       "id": "vote-colour",
@@ -195,7 +195,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "0dd9967b5ccdf19eecaaea5f2564dd98cdb6fea186151ff812f65ec09e953d6b",
-      "last_checked": "2026-07-22T13:16:32.671Z"
+      "last_checked": "2026-07-22T18:53:40.902Z"
     },
     {
       "id": "drxaos-themes",
@@ -208,7 +208,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "95b7f868c3140466962cc0dac37156401ffb731fe54f521d6e17556c1400b1d1",
-      "last_checked": "2026-07-22T13:16:32.774Z"
+      "last_checked": "2026-07-22T18:53:40.934Z"
     },
     {
       "id": "mobtheme",
@@ -221,7 +221,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "252aec545c8420fa19f674eb652ad54874cef523ac910c5977e5353b2de8b60d",
-      "last_checked": "2026-07-22T13:16:32.922Z"
+      "last_checked": "2026-07-22T18:53:40.963Z"
     },
     {
       "id": "3buttons",
@@ -234,7 +234,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "bd89501c475bb9cb688fd68ed20822f2b252e7afb51bf5730b77c67fe9043c82",
-      "last_checked": "2026-07-22T13:16:33.018Z"
+      "last_checked": "2026-07-22T18:53:40.991Z"
     },
     {
       "id": "cardify",
@@ -247,7 +247,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "c2974d409883cb3b819f52c67dd7894fed7c42e887c9a4c4287a3d489d9fcff5",
-      "last_checked": "2026-07-22T13:16:33.119Z"
+      "last_checked": "2026-07-22T18:53:41.008Z"
     },
     {
       "id": "top-bar",
@@ -260,7 +260,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "15b7ff92e41c6c462e0a594112e74d7311c08c0ea4754ed910a4f6dcdb159560",
-      "last_checked": "2026-07-22T13:16:33.220Z"
+      "last_checked": "2026-07-22T18:53:41.035Z"
     },
     {
       "id": "logo",
@@ -273,7 +273,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "d35983d99f82519e8b27868e3172ebc24bbbb3e0a195332dd9af4eceb1333a14",
-      "last_checked": "2026-07-22T13:16:33.330Z"
+      "last_checked": "2026-07-22T18:53:41.055Z"
     },
     {
       "id": "phone-menu",
@@ -286,7 +286,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "ba278cf21421b3a85a3c989cee4a7ff379787c076501ea9c7dba333bbffb9e21",
-      "last_checked": "2026-07-22T13:16:33.454Z"
+      "last_checked": "2026-07-22T18:53:41.073Z"
     },
     {
       "id": "collections",
@@ -299,7 +299,7 @@
       "category": "catalog",
       "enabled": true,
       "checksum": "e788eb61fc1f1ae7fe44793c6d9195ff48967777dde9edc99474f6a3bbb9dd1b",
-      "last_checked": "2026-07-22T13:16:33.563Z"
+      "last_checked": "2026-07-22T18:53:41.098Z"
     },
     {
       "id": "seasons",
@@ -312,7 +312,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "876603ef4662a46178b8d384d71e106f908d5030c62731e559c2f1ed38b6f705",
-      "last_checked": "2026-07-22T13:16:33.673Z"
+      "last_checked": "2026-07-22T18:53:41.126Z"
     },
     {
       "id": "quality",
@@ -325,7 +325,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "5f75546aa717ac8140c1c24e89d53eb70fa9cf470740a9a24529c4f7baf0a8e1",
-      "last_checked": "2026-07-22T13:16:33.770Z"
+      "last_checked": "2026-07-22T18:53:41.141Z"
     },
     {
       "id": "surs-quality",
@@ -338,7 +338,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "5f44cbcf73f4ab852db983de7fc5d12a18d82de91493ecca2e6a08cd7f619735",
-      "last_checked": "2026-07-22T13:16:33.869Z"
+      "last_checked": "2026-07-22T18:53:41.155Z"
     },
     {
       "id": "source-sort",
@@ -351,7 +351,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "b31b0160f0ab42807e0df0270485093f97365dee36449956cd6e48954b008e61",
-      "last_checked": "2026-07-22T13:16:33.955Z"
+      "last_checked": "2026-07-22T18:53:41.168Z"
     },
     {
       "id": "sources",
@@ -364,7 +364,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "eb9fc89665337514f8c882693754816e7558805c76c5216fe644c9605d879fcf",
-      "last_checked": "2026-07-22T13:16:34.067Z"
+      "last_checked": "2026-07-22T18:53:41.183Z"
     },
     {
       "id": "src-filter",
@@ -377,7 +377,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "57bab100dc7ad66a495d5fe5c3606a608b41548a8fe438713768400e9b523bf7",
-      "last_checked": "2026-07-22T13:16:34.153Z"
+      "last_checked": "2026-07-22T18:53:41.195Z"
     },
     {
       "id": "head-filter",
@@ -390,7 +390,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "0d98e915403d3d04f19a1f066cb9805af3c68eaf30a02295a499691b14098024",
-      "last_checked": "2026-07-22T13:16:34.240Z"
+      "last_checked": "2026-07-22T18:53:41.207Z"
     },
     {
       "id": "tiptop",
@@ -403,7 +403,7 @@
       "category": "catalog",
       "enabled": true,
       "checksum": "e05de18fce79328fcead72a9c1c3c9a90e085712842a892c92ed0b5a48d70c99",
-      "last_checked": "2026-07-22T13:16:34.327Z"
+      "last_checked": "2026-07-22T18:53:41.220Z"
     },
     {
       "id": "new-released",
@@ -416,7 +416,7 @@
       "category": "catalog",
       "enabled": true,
       "checksum": "9047fec9ecb7eee1e1e5f7c5364b52218f7a16b725bacf2c4964390798a9ad1f",
-      "last_checked": "2026-07-22T13:16:34.416Z"
+      "last_checked": "2026-07-22T18:53:41.245Z"
     },
     {
       "id": "shots",
@@ -429,7 +429,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "35e12b6c4f952904d7daccba613d26773c81987aeffd678e6f07b4834ed801d1",
-      "last_checked": "2026-07-22T13:16:34.530Z"
+      "last_checked": "2026-07-22T18:53:41.262Z"
     },
     {
       "id": "cache",
@@ -442,7 +442,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "f9968b338392fce6978aae6a98cef7211d84a36b243d73f92169406b5844bf7a",
-      "last_checked": "2026-07-22T13:16:34.629Z"
+      "last_checked": "2026-07-22T18:53:41.278Z"
     },
     {
       "id": "exit",
@@ -455,7 +455,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "9c73f72106d0532c060076e4f028ffb741049c9cbe541bedbd082a1093198311",
-      "last_checked": "2026-07-22T13:16:34.718Z"
+      "last_checked": "2026-07-22T18:53:41.293Z"
     },
     {
       "id": "notrailers",
@@ -468,7 +468,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "abe6c4d2af662ebb1528151bc4bca141daea6328d02da4b53386af98dfb08016",
-      "last_checked": "2026-07-22T13:16:34.833Z"
+      "last_checked": "2026-07-22T18:53:41.305Z"
     },
     {
       "id": "torrents-styles",
@@ -481,7 +481,7 @@
       "category": "torrent",
       "enabled": true,
       "checksum": "d38dce9c2b04af17e3de76f21be24e95b8dff094d689e9defa201ec9400da8e5",
-      "last_checked": "2026-07-22T13:16:34.932Z"
+      "last_checked": "2026-07-22T18:53:41.321Z"
     },
     {
       "id": "menu-editor",
@@ -494,7 +494,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "a4730b5ca1b27d1223f0b9ee98e298628c16a5a897dc75d7c3c098df4689c71d",
-      "last_checked": "2026-07-22T13:16:35.027Z"
+      "last_checked": "2026-07-22T18:53:41.341Z"
     },
     {
       "id": "studios",
@@ -507,7 +507,7 @@
       "category": "catalog",
       "enabled": true,
       "checksum": "b1ced179464f5c9d0c847214679db54822ff98f5b481715bd6374a4b4b02743e",
-      "last_checked": "2026-07-22T13:16:35.129Z"
+      "last_checked": "2026-07-22T18:53:41.361Z"
     },
     {
       "id": "tmdb-mod",
@@ -520,7 +520,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "dceaced298031ad38d0088e77cc75556975500539723f67ec8c5bf56c2b3955c",
-      "last_checked": "2026-07-22T13:16:35.230Z"
+      "last_checked": "2026-07-22T18:53:41.380Z"
     },
     {
       "id": "aloader",
@@ -533,7 +533,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "716cc6db4214a43eac55e5a15a5138c58a7354027b589d98dde1ba4da56b75ac",
-      "last_checked": "2026-07-22T13:16:35.322Z"
+      "last_checked": "2026-07-22T18:53:41.401Z"
     },
     {
       "id": "player",
@@ -546,7 +546,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "6e91b4b699c5e9f886f7534cfff33c3d1179033fc7e0443c3b5a79ade19a7f71",
-      "last_checked": "2026-07-22T13:16:35.412Z"
+      "last_checked": "2026-07-22T18:53:41.447Z"
     },
     {
       "id": "ai-search",
@@ -559,7 +559,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "08e41abe009bff98215c90c70073a9ddaff0c6ea76e7f3094d2cb2f9b87c4c2d",
-      "last_checked": "2026-07-22T13:16:35.514Z"
+      "last_checked": "2026-07-22T18:53:41.464Z"
     },
     {
       "id": "wiki",
@@ -572,7 +572,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "950ffc2204848f2088819f9904664d551d3667b234ce4500e60d833c63a44f10",
-      "last_checked": "2026-07-22T13:16:35.624Z"
+      "last_checked": "2026-07-22T18:53:41.490Z"
     },
     {
       "id": "wikifind",
@@ -585,7 +585,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "950ffc2204848f2088819f9904664d551d3667b234ce4500e60d833c63a44f10",
-      "last_checked": "2026-07-22T13:16:35.725Z"
+      "last_checked": "2026-07-22T18:53:41.508Z"
     },
     {
       "id": "yandex-music",
@@ -598,7 +598,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "3a3c07fe280db066fd6bf9057651559e2c6c29465505b6770a9156dc7f7ea015",
-      "last_checked": "2026-07-22T13:16:35.824Z"
+      "last_checked": "2026-07-22T18:53:41.525Z"
     },
     {
       "id": "online-serve",
@@ -611,7 +611,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "3537a746b9c33254bb247f61320222d30957fcd4718a51e88a6b7a97bc8a4b37",
-      "last_checked": "2026-07-22T13:16:35.928Z"
+      "last_checked": "2026-07-22T18:53:41.551Z"
     },
     {
       "id": "hfix",
@@ -624,7 +624,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "7d8798ee4a7e8255b313fb10d139f90666626da2a4775abfbee86f86cfdcf382",
-      "last_checked": "2026-07-22T13:16:36.060Z"
+      "last_checked": "2026-07-22T18:53:41.619Z"
     },
     {
       "id": "season-fix",
@@ -637,7 +637,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "dd5581387236b37bf40104afa92a62e4cb828e34ed3cac246c82ea3534d8315d",
-      "last_checked": "2026-07-22T13:16:36.170Z"
+      "last_checked": "2026-07-22T18:53:41.639Z"
     },
     {
       "id": "anime-skip",
@@ -650,7 +650,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "8984ea46083cf6e713a4e21ea9668c05d12f2db4d69ed7d19be310a782a5da41",
-      "last_checked": "2026-07-22T13:16:36.283Z"
+      "last_checked": "2026-07-22T18:53:41.657Z"
     },
     {
       "id": "interface-ipavlin",
@@ -663,7 +663,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "2afa7992c33cbbdb9fc2b1f919e8c84d234b07b48b406e06d9e109f1c5f36bad",
-      "last_checked": "2026-07-22T13:16:36.387Z"
+      "last_checked": "2026-07-22T18:53:41.683Z"
     },
     {
       "id": "cardify-rating",
@@ -676,7 +676,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "df7f1aed5933112c77d12686db58dd33912d3ae4893d92edeca233e86fd0109c",
-      "last_checked": "2026-07-22T13:16:36.486Z"
+      "last_checked": "2026-07-22T18:53:41.701Z"
     },
     {
       "id": "logo-ipavlin",
@@ -689,7 +689,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "1630b3909472e1609df2f825a703fb74c6ad67ba43c48695f3fd70e6d18bef37",
-      "last_checked": "2026-07-22T13:16:36.603Z"
+      "last_checked": "2026-07-22T18:53:41.722Z"
     },
     {
       "id": "series-progress",
@@ -702,7 +702,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "a9dc12a84cac0b747c73440b39071525b72cf81dccba412cfc944dd32d2f20e1",
-      "last_checked": "2026-07-22T13:16:36.702Z"
+      "last_checked": "2026-07-22T18:53:41.736Z"
     },
     {
       "id": "torrent-styles-ipavlin",
@@ -715,7 +715,7 @@
       "category": "torrent",
       "enabled": true,
       "checksum": "2c2f3b179e46d88f98746c9273c5953e4b3f3f035df066305a95cd424632fe19",
-      "last_checked": "2026-07-22T13:16:36.804Z"
+      "last_checked": "2026-07-22T18:53:41.764Z"
     },
     {
       "id": "series-skip",
@@ -728,7 +728,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "da89b0c71b3d292129b15d5092fab3ac3769b9da3cc9cfc6bb88429b3fcd47f9",
-      "last_checked": "2026-07-22T13:16:36.889Z"
+      "last_checked": "2026-07-22T18:53:41.789Z"
     },
     {
       "id": "pip",
@@ -741,7 +741,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "f0e747b20f4ea5d6fde087fdcf60dd27ce91dbdecb81258fe5f1edcf0c74ba86",
-      "last_checked": "2026-07-22T13:16:36.995Z"
+      "last_checked": "2026-07-22T18:53:41.818Z"
     },
     {
       "id": "rutube-trailers",
@@ -754,7 +754,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "70cc8602b9c17d82425a6e6d0a3056ea125a6e90a62b59aab92f53756bc79e18",
-      "last_checked": "2026-07-22T13:16:37.085Z"
+      "last_checked": "2026-07-22T18:53:41.851Z"
     },
     {
       "id": "lnum",
@@ -767,7 +767,7 @@
       "category": "catalog",
       "enabled": true,
       "checksum": "a8c955e4d8c7a4afdb7933ddd8ebb279be6b7666e31dbd30fc293c4ff4401bc6",
-      "last_checked": "2026-07-22T13:16:37.197Z"
+      "last_checked": "2026-07-22T18:53:41.870Z"
     },
     {
       "id": "bookmarks-sync",
@@ -780,7 +780,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "60ef097020763cbbafeea0bd067393a6d819fea9e18eadbb4d26501a3c945be0",
-      "last_checked": "2026-07-22T13:16:37.313Z"
+      "last_checked": "2026-07-22T18:53:41.914Z"
     },
     {
       "id": "profiles",
@@ -793,7 +793,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "83484d10d04601855c384f8cb10ef4b10588bdba5c6507cd04ac789ac51a214a",
-      "last_checked": "2026-07-22T13:16:37.400Z"
+      "last_checked": "2026-07-22T18:53:41.950Z"
     },
     {
       "id": "tmdb-networks",
@@ -806,7 +806,7 @@
       "category": "catalog",
       "enabled": true,
       "checksum": "290c0a9508d756af6d27df495e78fe530a2ea21c55049590cb3eca951adb3997",
-      "last_checked": "2026-07-22T13:16:37.526Z"
+      "last_checked": "2026-07-22T18:53:41.983Z"
     },
     {
       "id": "custom-favs",
@@ -819,7 +819,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "83484d10d04601855c384f8cb10ef4b10588bdba5c6507cd04ac789ac51a214a",
-      "last_checked": "2026-07-22T13:16:37.611Z"
+      "last_checked": "2026-07-22T18:53:42.002Z"
     },
     {
       "id": "lampac-src-filter",
@@ -832,7 +832,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "01e0e6c4a7ea3669289f3ac2af6ec0ab198922c3e15b3a25a769949a16bc49b9",
-      "last_checked": "2026-07-22T13:16:37.722Z"
+      "last_checked": "2026-07-22T18:53:42.040Z"
     },
     {
       "id": "anti-dmca",
@@ -845,7 +845,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "48a7ff46cd8701255ef11d7ae54878bd11b1edc936ee9536fa414357544d58d1",
-      "last_checked": "2026-07-22T13:16:37.825Z"
+      "last_checked": "2026-07-22T18:53:42.077Z"
     },
     {
       "id": "easytorrent-darkest",
@@ -858,7 +858,7 @@
       "category": "torrent",
       "enabled": true,
       "checksum": "62d14f1b062df3b92abfdc1276fc892f86312fe6e44efb4196bf0a02702b0b90",
-      "last_checked": "2026-07-22T13:16:37.921Z"
+      "last_checked": "2026-07-22T18:53:42.092Z"
     },
     {
       "id": "applecation",
@@ -871,7 +871,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "b51d6a21b01d7eb538b3a69d9fabbbd9a3c000d0388a56907568aa1cf7a2cccb",
-      "last_checked": "2026-07-22T13:16:38.042Z"
+      "last_checked": "2026-07-22T18:53:42.178Z"
     },
     {
       "id": "infusesync",
@@ -884,7 +884,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "614c0c78adf1fdc1cb06654693c18ea66395f1811303fbc807b9e327b15b062d",
-      "last_checked": "2026-07-22T13:16:38.144Z"
+      "last_checked": "2026-07-22T18:53:42.220Z"
     },
     {
       "id": "its-appletv",
@@ -897,7 +897,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "ac620d838056057716dac4eb7e2d38384c5b0f0842e856eee190a18adab83720",
-      "last_checked": "2026-07-22T13:16:38.260Z"
+      "last_checked": "2026-07-22T18:53:42.259Z"
     },
     {
       "id": "aloader-iam",
@@ -910,7 +910,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "b8ec4a0317356fc409bae3da0799817f465905530f3b9999c37fbfc7f5ab5856",
-      "last_checked": "2026-07-22T13:16:38.385Z"
+      "last_checked": "2026-07-22T18:53:42.282Z"
     },
     {
       "id": "srcswap",
@@ -923,7 +923,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "bfe4e89521442a54748c3c55d61f2b147267023ea5fa62c94068c7d831e76cf1",
-      "last_checked": "2026-07-22T13:16:38.520Z"
+      "last_checked": "2026-07-22T18:53:42.333Z"
     },
     {
       "id": "bb123",
@@ -936,7 +936,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "0fb9915e884fb37949f1667d4d5b7046a95dc77935520b69fa3e898f5bd59fb0",
-      "last_checked": "2026-07-22T13:16:38.621Z"
+      "last_checked": "2026-07-22T18:53:42.364Z"
     },
     {
       "id": "movplg",
@@ -949,7 +949,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "d1d820780ab58eec041899fa227a800da0202c1222cada57b6f318ab255e6887",
-      "last_checked": "2026-07-22T13:16:38.720Z"
+      "last_checked": "2026-07-22T18:53:42.392Z"
     },
     {
       "id": "kinoecho",
@@ -962,7 +962,7 @@
       "category": "catalog",
       "enabled": true,
       "checksum": "fa8b6a127a9da44250a3d3f81f565d4b6683747d741fa15b527205b48fafe881",
-      "last_checked": "2026-07-22T13:16:38.829Z"
+      "last_checked": "2026-07-22T18:53:42.413Z"
     },
     {
       "id": "ru-lampa",
@@ -975,7 +975,7 @@
       "category": "catalog",
       "enabled": true,
       "checksum": "69435e5b546feadc7934e6cf7ca51dfcd5b8efbd5830fbbdf52e232348f5129d",
-      "last_checked": "2026-07-22T13:16:38.989Z"
+      "last_checked": "2026-07-22T18:53:42.633Z"
     },
     {
       "id": "lampa-rate",
@@ -988,7 +988,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "c991c800000cf27c1f9331f21f7374a569654fa463a1741f1cfa66bdf3af059d",
-      "last_checked": "2026-07-22T13:16:39.126Z"
+      "last_checked": "2026-07-22T18:53:42.739Z"
     },
     {
       "id": "rating1",
@@ -1001,7 +1001,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "38ae61117d030c93be100856bbda6013d991363bd3309a27805c48092c79bcca",
-      "last_checked": "2026-07-22T13:16:39.247Z"
+      "last_checked": "2026-07-22T18:53:42.772Z"
     },
     {
       "id": "syncpro",
@@ -1014,7 +1014,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "6b574925d7e2435a0eaaa774346d417c638490bbac3cfa10cd2ba53dd36c4e23",
-      "last_checked": "2026-07-22T13:16:39.365Z"
+      "last_checked": "2026-07-22T18:53:42.848Z"
     },
     {
       "id": "card-overlay",
@@ -1027,7 +1027,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "42200ebb6c97df42dac8b6739d899d696addae459b0b9b18f3319d10c002514e",
-      "last_checked": "2026-07-22T13:16:39.485Z"
+      "last_checked": "2026-07-22T18:53:42.959Z"
     },
     {
       "id": "nsl",
@@ -1040,7 +1040,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "ae73c93f231d4d0b3bf1f1fb3412692a900cfc0d04576dd9f42c8231c2743b48",
-      "last_checked": "2026-07-22T13:16:39.600Z"
+      "last_checked": "2026-07-22T18:53:42.990Z"
     },
     {
       "id": "jellyfin",
@@ -1053,7 +1053,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "56f682015f1008d1466645b8386207df0bccf67fbe8521e4fda9502f82cb7419",
-      "last_checked": "2026-07-22T13:16:39.758Z"
+      "last_checked": "2026-07-22T18:53:43.058Z"
     },
     {
       "id": "ux",
@@ -1066,7 +1066,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "931e405aa45560b8db3bee75a10664965abcdfe1e2b26058e7c08759562d3854",
-      "last_checked": "2026-07-22T13:16:39.928Z"
+      "last_checked": "2026-07-22T18:53:43.135Z"
     },
     {
       "id": "autoplay",
@@ -1079,7 +1079,7 @@
       "category": "player",
       "enabled": true,
       "checksum": "2e30fc2f2ff650ca59d4a4be235229fe644671f0fc4f12f94f244cd8fd7c2252",
-      "last_checked": "2026-07-22T13:16:40.112Z"
+      "last_checked": "2026-07-22T18:53:43.206Z"
     },
     {
       "id": "speed",
@@ -1092,7 +1092,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "e2452dc0c203ff4556534d89e5b2a26913679a128d17b7c03a336f0bdde91b13",
-      "last_checked": "2026-07-22T13:16:40.259Z"
+      "last_checked": "2026-07-22T18:53:43.274Z"
     },
     {
       "id": "filter-content",
@@ -1105,7 +1105,7 @@
       "category": "misc",
       "enabled": true,
       "checksum": "1f847dddf380a29eda3a4710dc9ac7729a9d2599f97be69172dc76863705d12d",
-      "last_checked": "2026-07-22T13:16:40.578Z"
+      "last_checked": "2026-07-22T18:53:43.351Z"
     },
     {
       "id": "new-phone-menu",
@@ -1118,7 +1118,7 @@
       "category": "interface",
       "enabled": true,
       "checksum": "01ee05aa15f020887edd2f7cb22232b831a92b81a6f4124bac2902c030b17849",
-      "last_checked": "2026-07-22T13:16:40.712Z"
+      "last_checked": "2026-07-22T18:53:43.455Z"
     }
   ]
 }

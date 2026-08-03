@@ -2,6 +2,12 @@
 
 ## 2026-08-03
 
+- ! **Lampa Rate** (lampa-rate): enabled → disabled
+
+# CHANGELOG
+
+## 2026-08-03
+
 Изменений нет.
 
 # CHANGELOG

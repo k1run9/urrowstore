@@ -2,6 +2,12 @@
 
 ## 2026-08-06
 
+Изменений нет.
+
+# CHANGELOG
+
+## 2026-08-06
+
 - ! **Logo** (logo): disabled → enabled
 
 # CHANGELOG
